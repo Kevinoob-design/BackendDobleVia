@@ -33,11 +33,11 @@ const server = app.listen(process.env.PORT, () => {
 var io = require('socket.io')(server);
 
 io.on('connection', (socket) => {
-    console.log('alooooooooooooooooooooooooooo');
-    io.broadcast.emit("receive_message", 'ALOOOOOOOOOO TAMO AQUIIIIIIIIIIIIIIIIIIIIIIII')
+    console.log('------------------------------alooooooooooooooooooooooooooo');
+    // io.broadcast.emit("receive_message", 'ALOOOOOOOOOO TAMO AQUIIIIIIIIIIIIIIIIIIIIIIII')
 });
 
 io.on("send_message", (data) => {
-    console.log('alooooooooooooooooooooooooooo');
+    console.log('----------------Este es el otro alooooooooooo');
     io.broadcast.emit("receive_message", data)
 })
