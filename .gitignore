@@ -1,6 +1,7 @@
 
 env.json
 node_modules/
+npm-debug.log
 MongoUser.txt
 .DS_Store*
 .env*
