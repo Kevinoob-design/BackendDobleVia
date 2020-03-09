@@ -34,7 +34,7 @@ var io = require('socket.io')(server);
 
 io.on('connection', (socket) => {
     console.log('------------------------------alooooooooooooooooooooooooooo: ', socket.id);
-    socket.emit("KLK con LA PAMPARAAAAAAAAAAAA!!!!")
+    socket.emit("send_message", "KLK con LA PAMPARAAAAAAAAAAAA!!!!");
     io.on("send_message", (data) => {
         console.log('----------------Este es el otro alooooooooooo');
         io.broadcast.emit("receive_message", data)
