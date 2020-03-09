@@ -36,7 +36,7 @@ io.on('connection', (socket) => {
     console.log('------------------------------alooooooooooooooooooooooooooo');
     io.on("send_message", (data) => {
         console.log('----------------Este es el otro alooooooooooo');
-        io.broadcast.emit("receive_message", "This is what i send you")
+        io.broadcast.emit("receive_message", data)
     })
 });
 
