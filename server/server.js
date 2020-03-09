@@ -30,7 +30,9 @@ const server = app.listen(process.env.PORT, () => {
         process.env.PORT);
 });
 
-var io = require('socket.io')(server);
+const http = require('http').createServer(app)
+
+var io = require('socket.io')(http);
 
 io.on('connection', (socket) => {
     console.log('------------------------------alooooooooooooooooooooooooooo');
