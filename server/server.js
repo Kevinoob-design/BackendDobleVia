@@ -34,11 +34,12 @@ var io = require('socket.io')(server);
 
 io.on('connection', (socket) => {
     console.log('------------------------------alooooooooooooooooooooooooooo: ', socket.id);
-    socket.emit("send_message", "KLK con LA PAMPARAAAAAAAAAAAA!!!!");
 
-    socket.on('receive_message', () => {
-        io.sockets.emit('send_message', '----------------Este es el otro alooooooooooo');
-    });
+    io.sockets.emit('send_message', '----------------Este es el otro alooooooooooo');
+
+    // socket.on('receive_message', () => {
+    //     io.sockets.emit('send_message', '----------------Este es el otro alooooooooooo');
+    // });
 
     // io.on("send_message", (data) => {
     //     console.log('----------------Este es el otro alooooooooooo');
