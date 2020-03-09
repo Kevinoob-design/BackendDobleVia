@@ -32,12 +32,13 @@ const server = app.listen(process.env.PORT, () => {
 
 var io = require('socket.io')(server);
 
-io.on('connection', (socket) => {
-    console.log('------------------------------alooooooooooooooooooooooooooo');
-    io.on("send_message", (data) => {
-        console.log('----------------Este es el otro alooooooooooo');
-        io.broadcast.emit("receive_message", data)
-    })
+// io.on('connection', (socket) => {
+//     console.log('------------------------------alooooooooooooooooooooooooooo');
+
+// });
+
+io.on('connection', socket => {
+    console.log('Made a connection with: ' + socket.id);
 });
 
 
