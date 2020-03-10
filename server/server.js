@@ -34,7 +34,12 @@ var io = require('socket.io')(server);
 
 io.on('connection', (socket) => {
     console.log('------------------------------alooooooooooooooooooooooooooo: ', socket.id);
-    io.sockets.emit('send_message', '----------------Este es el otro alooooooooooo');
+    // io.sockets.emit('send_message', '----------------Este es el otro alooooooooooo');
+
+    socket.on('message', (message) => {
+        console.log('I got this-------- ' + message);
+        io.sockets.emit("news", "I'm responding modafokaaaaa");
+    });
 
     // socket.on('receive_message', () => {
     //     io.sockets.emit('send_message', '----------------Este es el otro alooooooooooo');
