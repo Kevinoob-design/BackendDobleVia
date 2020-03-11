@@ -3,6 +3,13 @@ const Route = require('../models/Route');
 
 const app = express();
 
+const server = app.listen(process.env.PORT, () => {
+    console.log("Listening on port: ",
+        process.env.PORT);
+});
+
+var io = require('socket.io')(server);
+
 io.on('connection', (socket) => {
     console.log('------------------------------alooooooooooooooooooooooooooo: ', socket.id);
 
