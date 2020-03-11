@@ -1,5 +1,6 @@
 const express = require('express');
 const Route = require('../models/Route');
+const io = require('socket.io');
 
 const app = express();
 
@@ -86,7 +87,7 @@ app.post('/route', (req, res) => {
             });
         }
 
-        exports.routeDB = routeDB;
+        io.sockets.emit('news', routeDB);
 
         res.status(201).json({
             ok: true,

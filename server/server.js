@@ -29,20 +29,19 @@ const server = app.listen(process.env.PORT, () => {
         process.env.PORT);
 });
 
-var io = require('socket.io')(server);
+const io = require('socket.io')(server);
 
 io.on('connection', (socket) => {
-    console.log('------------------------------alooooooooooooooooooooooooooo: ', socket.id);
 
-    socket.on('message', async (message) => {
-        console.log('I got this-------- ' + message);
+    // socket.on('message', async (message) => {
+    //     console.log('I got this-------- ' + message);
 
-        const {routeDB} = await require('./controllers/Routes');
+    //     const {routeDB} = await require('./controllers/Routes');
 
-        console.log(routeDB);
+    //     console.log(routeDB);
 
-        io.sockets.emit('news', routeDB);
-    });
+    //     io.sockets.emit('news', routeDB);
+    // });
 });
 
 
