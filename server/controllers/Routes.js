@@ -86,6 +86,8 @@ app.post('/route', (req, res) => {
             });
         }
 
+        module.exports = {routeDB};
+
         res.status(201).json({
             ok: true,
             route: routeDB

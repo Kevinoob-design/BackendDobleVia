@@ -31,26 +31,17 @@ const server = app.listen(process.env.PORT, () => {
 
 var io = require('socket.io')(server);
 
-// io.on('connection', (socket) => {
-//     console.log('------------------------------alooooooooooooooooooooooooooo: ', socket.id);
+io.on('connection', (socket) => {
+    console.log('------------------------------alooooooooooooooooooooooooooo: ', socket.id);
 
-//     socket.on('message', (message) => {
-//         console.log('I got this-------- ' + message);
+    socket.on('message', (message) => {
+        console.log('I got this-------- ' + message);
 
-//         Route.find({})
-//             .exec((err, routes) => {
+        var {routeDB} = require('./controllers/Routes');
 
-//                 if (err) {
-//                     return io.sockets.emit('news', err);
-//                 }
-
-//                 Route.countDocuments({}, (err, counts) => {
-//                     io.sockets.emit('news', routes);
-//                 });
-
-//             });
-//     });
-// });
+        io.sockets.emit('news', routeDB);
+    });
+});
 
 
 
