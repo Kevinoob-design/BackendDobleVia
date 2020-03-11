@@ -1,8 +1,11 @@
 const express = require('express');
 const Route = require('../models/Route');
-// const io = require('socket.io');
+const bodyParser = require('body-parser');
 
 const app = express();
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 const server = app.listen(process.env.PORT, () => {
     console.log("Listening on port: ",
@@ -11,7 +14,7 @@ const server = app.listen(process.env.PORT, () => {
 
 const io = require('socket.io')(server);
 
-io.on('connection', (socket) => {});
+io.on('connection', (socket) => { });
 
 app.get('/route', (req, res) => {
 
@@ -100,8 +103,8 @@ app.post('/route', (req, res) => {
         }
 
         console.log(routeDB);
-        io.emit("news", "outside the on");
-        io.emit("news", routeDB);
+        // io.emit("news", "outside the on");
+        // io.emit("news", routeDB);
 
         res.status(201).json({
             ok: true,
