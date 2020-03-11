@@ -78,7 +78,7 @@ app.get('/route/:routeID', (req, res) => {
 });
 
 app.post('/route', (req, res) => {
-    // console.log(req);
+    console.log(req.body);
     let body = req.body;
     console.log(body);
     console.log(body.position);
@@ -98,9 +98,9 @@ app.post('/route', (req, res) => {
             });
         }
 
-        // console.log(routeDB);
-        // io.emit("news", "outside the on");
-        // io.emit("news", routeDB);
+        console.log(routeDB);
+        io.emit("news", "outside the on");
+        io.emit("news", routeDB);
 
         res.status(201).json({
             ok: true,
