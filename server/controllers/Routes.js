@@ -96,7 +96,7 @@ app.post('/route', (req, res) => {
             });
         }
 
-        io.sockets.emit('news', routeDB);
+        io.emit('news', routeDB);
 
         res.status(201).json({
             ok: true,
