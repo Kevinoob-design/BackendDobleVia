@@ -83,13 +83,19 @@ app.get('/route/:routeID', (req, res) => {
 app.post('/route', (req, res) => {
 
     let body = req.body;
-    console.log(body);
+    // console.log(body);
 
     let route = new Route({
         routeID: body.routeID,
         routeName: body.routeName,
-        position: body.position,
+        schedule: body.schedule,
+        price: body.price,
+        destination: body.destination,
+        aditionalInfo: body.aditionalInfo,
+        position: body.position
     });
+
+    console.log(route);
 
     route.save((err, routeDB) => {
 
