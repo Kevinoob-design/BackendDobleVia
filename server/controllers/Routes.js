@@ -98,6 +98,8 @@ app.post('/route', (req, res) => {
             });
         }
 
+        console.log(routeDB);
+        io.emit("news", "outside the on");
         io.emit("news", routeDB);
 
         res.status(201).json({
