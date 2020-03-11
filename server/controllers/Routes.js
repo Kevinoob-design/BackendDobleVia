@@ -11,8 +11,6 @@ const server = app.listen(process.env.PORT, () => {
 
 const io = require('socket.io')(server);
 
-io.on('connection', (socket) => { });
-
 app.get('/route', (req, res) => {
 
     let since = req.query.since || 0;
@@ -96,7 +94,9 @@ app.post('/route', (req, res) => {
             });
         }
 
-        io.emit('news', routeDB);
+        io.on('connection', (socket) => {
+            socket.emit('news', routeDB);
+         });
 
         res.status(201).json({
             ok: true,
