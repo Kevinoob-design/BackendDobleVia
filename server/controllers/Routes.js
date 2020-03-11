@@ -3,6 +3,27 @@ const Route = require('../models/Route');
 
 const app = express();
 
+io.on('connection', (socket) => {
+    console.log('------------------------------alooooooooooooooooooooooooooo: ', socket.id);
+
+    socket.on('message', (message) => {
+        console.log('I got this-------- ' + message);
+
+        Route.find({})
+            .exec((err, routes) => {
+
+                if (err) {
+                    return io.sockets.emit('news', err);
+                }
+
+                Route.countDocuments({}, (err, counts) => {
+                    io.sockets.emit('news', routes);
+                });
+
+            });
+    });
+});
+
 app.get('/route', (req, res) => {
 
     let since = req.query.since || 0;
@@ -35,7 +56,9 @@ app.get('/route/:routeID', (req, res) => {
 
     let routeID = req.params.routeID;
 
-    Route.findOne({ routeID })
+    Route.findOne({
+            routeID
+        })
         .exec((err, route) => {
 
             if (err) {
@@ -98,7 +121,12 @@ app.put('/route/:routeID', (req, res) => {
     let routeID = req.params.routeID;
     let body = req.body;
 
-    Route.findOneAndUpdate({ routeID }, body, { new: true, runValidators: true }, (err, routeDB) => {
+    Route.findOneAndUpdate({
+        routeID
+    }, body, {
+        new: true,
+        runValidators: true
+    }, (err, routeDB) => {
 
         if (err) {
             return res.status(400).json({
@@ -129,7 +157,9 @@ app.delete('/route/:routeID', (req, res) => {
 
     let routeID = req.params.routeID;
 
-    Route.findOneAndRemove({ routeID }, (err, deletedRoute) => {
+    Route.findOneAndRemove({
+        routeID
+    }, (err, deletedRoute) => {
 
         if (err) {
             return res.status(400).json({
