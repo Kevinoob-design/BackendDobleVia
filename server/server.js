@@ -37,7 +37,9 @@ io.on('connection', (socket) => {
     socket.on('message', (message) => {
         console.log('I got this-------- ' + message);
 
-        var {routeDB} = require('./controllers/Routes');
+        const {routeDB} = require('./controllers/Routes');
+
+        console.log(routeDB);
 
         io.sockets.emit('news', routeDB);
     });
