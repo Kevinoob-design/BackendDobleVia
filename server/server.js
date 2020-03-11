@@ -34,10 +34,10 @@ var io = require('socket.io')(server);
 io.on('connection', (socket) => {
     console.log('------------------------------alooooooooooooooooooooooooooo: ', socket.id);
 
-    socket.on('message', (message) => {
+    socket.on('message', async (message) => {
         console.log('I got this-------- ' + message);
 
-        const {routeDB} = require('./controllers/Routes');
+        const {routeDB} = await require('./controllers/Routes');
 
         console.log(routeDB);
 
