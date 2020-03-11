@@ -79,6 +79,7 @@ app.get('/route/:routeID', (req, res) => {
 
 app.post('/route', (req, res) => {
     console.log(req.body);
+    console.log('here we are');
     let body = req.body;
     console.log(body);
     console.log(body.position);
