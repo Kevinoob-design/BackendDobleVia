@@ -11,10 +11,7 @@ const server = app.listen(process.env.PORT, () => {
 
 const io = require('socket.io')(server);
 
-io.on('connection', (socket) => {
-    // socket.emit("news", "this is a test");
-    // io.emit("news", "outside the on");
-});
+io.on('connection', (socket) => {});
 
 app.get('/route', (req, res) => {
 
@@ -101,8 +98,7 @@ app.post('/route', (req, res) => {
             });
         }
 
-        // io.emit("news", routeDB);
-        io.sockets.emit('news', routeDB);
+        io.emit("news", routeDB);
 
         res.status(201).json({
             ok: true,
