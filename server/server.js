@@ -33,9 +33,8 @@ const io = require('socket.io')(server);
 
 io.on('connection', (socket) => {
     socket.emit("news", "this is a test");
+    io.emit("news", "outside the on");
 });
-
-io.emit("news", "outside the on");
 
 
 
