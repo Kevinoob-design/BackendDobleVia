@@ -24,13 +24,31 @@ mongoose.connect(process.env.DBURI, {
     console.log("Data Base Online");
 });
 
+const server = app.listen(process.env.PORT, () => {
+    console.log("Listening on port: ",
+        process.env.PORT);
+});
+
+var io = require('socket.io')(server);
+
 // io.on('connection', (socket) => {
 //     console.log('------------------------------alooooooooooooooooooooooooooo: ', socket.id);
-//     // io.sockets.emit('send_message', '----------------Este es el otro alooooooooooo');
 
 //     socket.on('message', (message) => {
 //         console.log('I got this-------- ' + message);
-//         io.sockets.emit("news", "I'm responding modafokaaaaa");
+
+//         Route.find({})
+//             .exec((err, routes) => {
+
+//                 if (err) {
+//                     return io.sockets.emit('news', err);
+//                 }
+
+//                 Route.countDocuments({}, (err, counts) => {
+//                     io.sockets.emit('news', routes);
+//                 });
+
+//             });
 //     });
 // });
 
