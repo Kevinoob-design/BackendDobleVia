@@ -4,7 +4,21 @@ const Route = require('../models/Route');
 
 const app = express();
 
+const server = app.listen(process.env.PORT, () => {
+    console.log("Listening on port: ",
+        process.env.PORT);
+});
+
+const io = require('socket.io')(server);
+
+io.on('connection', (socket) => {
+    // socket.emit("news", "this is a test");
+    // io.emit("news", "outside the on");
+});
+
 app.get('/route', (req, res) => {
+
+    io.emit("news", "outside the on");
 
     let since = req.query.since || 0;
     since = Number(since);
@@ -88,7 +102,7 @@ app.post('/route', (req, res) => {
         }
 
         // io.emit("news", routeDB);
-        // io.sockets.emit('news', routeDB);
+        io.sockets.emit('news', routeDB);
 
         res.status(201).json({
             ok: true,
