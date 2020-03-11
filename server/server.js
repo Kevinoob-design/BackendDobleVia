@@ -24,25 +24,5 @@ mongoose.connect(process.env.DBURI, {
     console.log("Data Base Online");
 });
 
-const server = app.listen(process.env.PORT, () => {
-    console.log("Listening on port: ",
-        process.env.PORT);
-});
-
-const io = require('socket.io')(server);
-
-io.on('connection', (socket) => {
-
-    // socket.on('message', async (message) => {
-    //     console.log('I got this-------- ' + message);
-
-    //     const {routeDB} = await require('./controllers/Routes');
-
-    //     console.log(routeDB);
-
-    //     io.sockets.emit('news', routeDB);
-    // });
-});
-
 
 
