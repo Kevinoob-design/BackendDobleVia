@@ -14,9 +14,13 @@ const server = app.listen(process.env.PORT, () => {
 
 const io = require('socket.io')(server);
 
-io.on('connection', (socket) => { });
+io.on('connection', (socket) => { 
+    console.log('THe socket ID of the device: ' + sockets.id);
+});
 
 app.get('/route', (req, res) => {
+
+    console.log(req);
 
     io.emit("news", "outside the on");
 
@@ -83,7 +87,7 @@ app.get('/route/:routeID', (req, res) => {
 app.post('/route', (req, res) => {
 
     let body = req.body;
-    // console.log(body);
+    console.log(body);
 
     let route = new Route({
         routeID: body.routeID,
@@ -121,6 +125,7 @@ app.put('/route/:routeID', (req, res) => {
 
     let routeID = req.params.routeID;
     let body = req.body;
+    console.log(body);
 
     Route.findOneAndUpdate({
         routeID
@@ -157,6 +162,7 @@ app.put('/route/:routeID', (req, res) => {
 app.delete('/route/:routeID', (req, res) => {
 
     let routeID = req.params.routeID;
+    console.log(req.body)
 
     Route.findOneAndRemove({
         routeID
