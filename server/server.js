@@ -4,7 +4,6 @@ require('../config/config');
 const app = require('express')();
 const mongoose = require('mongoose');
 
-
 app.use(require('./controllers/Routes'));
 
 mongoose.connect(process.env.DBURI, {
