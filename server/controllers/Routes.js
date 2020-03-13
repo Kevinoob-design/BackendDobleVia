@@ -16,7 +16,8 @@ const server = app.listen(process.env.PORT, () => {
 const io = require('socket.io')(server);
 
 io.on('connection', (socket) => { 
-    console.log('THe socket ID of the device: ' + socket.id);
+    console.log('The socket ID of the device: ' + socket.id);
+    console.log('The client is: ' + socket.client);
 });
 
 app.get('/route', (req, res) => {
