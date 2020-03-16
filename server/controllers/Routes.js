@@ -22,7 +22,7 @@ io.on('connection', (socket) => {
 
 app.get('/route', (req, res) => {
 
-    console.log(req);
+    // console.log(req);
 
     io.emit("news", "outside the on");
 
