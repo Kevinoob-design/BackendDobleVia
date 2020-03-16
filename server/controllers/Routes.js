@@ -1,9 +1,10 @@
 const express = require('express');
 const Route = require('../models/Route');
 const bodyParser = require('body-parser');
+const cors = require('cors')
 
 const app = express();
-
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
@@ -15,7 +16,8 @@ const server = app.listen(process.env.PORT, () => {
 const io = require('socket.io')(server);
 
 io.on('connection', (socket) => { 
-    console.log('THe socket ID of the device: ' + socket.id);
+    console.log('The socket ID of the device: ' + socket.id);
+    console.log('The client is: ' + socket.client.request);
 });
 
 app.get('/route', (req, res) => {
