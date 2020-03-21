@@ -24,7 +24,7 @@ app.get('/route', (req, res) => {
 
     // console.log(req);
 
-    io.emit("news", "outside the on");
+    // io.emit("news", "outside the on");
 
     let since = req.query.since || 0;
     since = Number(since);
@@ -152,8 +152,6 @@ app.put('/route/:routeID', (req, res) => {
             });
         }
 
-        io.emit("deleted", routeDB);
-
         res.status(200).json({
             ok: true,
             route: routeDB
@@ -187,6 +185,8 @@ app.delete('/route/:routeID', (req, res) => {
                 }
             });
         }
+
+        io.emit("deleted", routeDB);
 
         res.status(200).json({
             ok: true,
