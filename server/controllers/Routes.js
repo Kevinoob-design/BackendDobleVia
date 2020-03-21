@@ -186,7 +186,7 @@ app.delete('/route/:routeID', (req, res) => {
             });
         }
 
-        io.emit("deleted", routeDB);
+        io.emit("deleted", deletedRoute);
 
         res.status(200).json({
             ok: true,
