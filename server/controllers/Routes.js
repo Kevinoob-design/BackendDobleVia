@@ -152,6 +152,8 @@ app.put('/route/:routeID', (req, res) => {
             });
         }
 
+        io.emit("deleted", routeDB);
+
         res.status(200).json({
             ok: true,
             route: routeDB
