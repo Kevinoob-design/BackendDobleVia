@@ -4,7 +4,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 let Schema = mongoose.Schema;
 
 let routeSchema = new Schema({
-    routeID: {
+    ID: {
         type: String,
         required: [true, 'The route ID must be provided'],
         unique: true
