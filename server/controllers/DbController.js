@@ -11,9 +11,9 @@ module.exports = function(Schema) {
         });
     }
 
-    this.getOne = (routeID) => {
+    this.getOne = (ID) => {
         return new Promise((resolve, reject) => {
-            Schema.findOne({ routeID }).exec((err, entity) => {
+            Schema.findOne({ ID }).exec((err, entity) => {
                 if (err) {
                     reject(err);
                 }
