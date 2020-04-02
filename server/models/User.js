@@ -3,6 +3,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 
 let Schema = mongoose.Schema;
 
+//This is the base model of a user to identify their porpouse in the app.
 let userSchema = new Schema({
     ID: {
         type: String,

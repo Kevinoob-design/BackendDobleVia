@@ -3,6 +3,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 
 let Schema = mongoose.Schema;
 
+//This schema is for internal use ONLY, this will allow users to get in contact with administrators for any given reason.
 let contactSchema = new Schema({
     userID: {
         type: String,

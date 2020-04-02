@@ -3,6 +3,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 
 let Schema = mongoose.Schema;
 
+//This Schema is to evaluate the rating of the different route available in the system.
 let surveySchema = new Schema({
     ID: {
         type: String,
