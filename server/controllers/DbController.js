@@ -1,4 +1,4 @@
-module.exports = function(Schema) {
+module.exports = function (Schema) {
 
     this.get = () => {
         return new Promise((resolve, reject) => {
@@ -20,6 +20,21 @@ module.exports = function(Schema) {
 
                 if (!entity) {
                     reject('ID was not found');
+                }
+                resolve(entity)
+            });
+        });
+    }
+
+    this.getUserByEmail = (email) => {
+        return new Promise((resolve, reject) => {
+            Schema.findOne({email}).exec((err, entity) => {
+                if (err) {
+                    reject(err);
+                }
+
+                if (!entity) {
+                    reject('Object was not found');
                 }
                 resolve(entity)
             });

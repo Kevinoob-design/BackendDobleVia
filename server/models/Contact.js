@@ -33,7 +33,7 @@ let contactSchema = new Schema({
     }
 });
 
-routeSchema.plugin(uniqueValidator, {
+contactSchema.plugin(uniqueValidator, {
     message: '{PATH} must be unique'
 });
 

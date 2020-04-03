@@ -30,7 +30,7 @@ let feedbackSchema = new Schema({
     }
 });
 
-routeSchema.plugin(uniqueValidator, {
+feedbackSchema.plugin(uniqueValidator, {
     message: '{PATH} must be unique'
 });
 

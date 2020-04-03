@@ -29,7 +29,7 @@ let surveySchema = new Schema({
     }]
 });
 
-routeSchema.plugin(uniqueValidator, {
+surveySchema.plugin(uniqueValidator, {
     message: '{PATH} must be unique'
 });
 

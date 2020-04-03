@@ -14,7 +14,7 @@ let issueSchema = new Schema({
     }
 });
 
-routeSchema.plugin(uniqueValidator, {
+issueSchema.plugin(uniqueValidator, {
     message: '{PATH} must be unique'
 });
 

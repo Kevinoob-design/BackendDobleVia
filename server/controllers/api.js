@@ -1,7 +1,9 @@
+//Module class to declare a rehusable RESTfull API that serves as CRUD for Data Base especified Model.
 module.exports = function (prefix, app, db) {
 
+    //GET Request to handled to get respective all data from DB instance data for specifed MODEL.
     app.get(prefix, (req, res) => {
-        // console.log(req);
+        // console.log(req.originalUrl);
         db.get().then(resolve => {
             res.status(200).json({
                 ok: true,
@@ -15,8 +17,9 @@ module.exports = function (prefix, app, db) {
         });
     });
 
+    //GET Request to handled to get one by ID from respective DB instance data for specifed MODEL.
     app.get(`${prefix}/:ID`, (req, res) => {
-        let ID = req.params.ID;
+        const ID = req.ID || req.params.ID;
         db.getOne(ID).then(resolve => {
             res.status(200).json({
                 ok: true,
@@ -30,6 +33,7 @@ module.exports = function (prefix, app, db) {
         });
     });
 
+    //POST Request to handled the creation of new data from respective DB instance for specifed MODEL.
     app.post(prefix, (req, res) => {
 
         let body = req.body;
@@ -38,6 +42,7 @@ module.exports = function (prefix, app, db) {
         db.save(body).then(resolve => {
             res.status(200).json({
                 ok: true,
+                token: req.token,
                 resolve,
             });
         }).catch(err => {
@@ -49,6 +54,7 @@ module.exports = function (prefix, app, db) {
 
     });
 
+    //PUT Request to handled the update of existing data from respective DB instance for specifed MODEL.
     app.put(`${prefix}/:ID`, (req, res) => {
 
         let ID = req.params.ID;
@@ -68,6 +74,7 @@ module.exports = function (prefix, app, db) {
         });
     });
 
+    //DELETE Request to handled the deletion of existing data from respective DB instance for specifed MODEL.
     app.delete(`${prefix}/:ID`, (req, res) => {
 
         let ID = req.params.ID;

@@ -20,7 +20,8 @@ let userSchema = new Schema({
     },
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     password: {
         type: String,
@@ -32,7 +33,7 @@ let userSchema = new Schema({
     }
 });
 
-routeSchema.plugin(uniqueValidator, {
+userSchema.plugin(uniqueValidator, {
     message: '{PATH} must be unique'
 });
 
