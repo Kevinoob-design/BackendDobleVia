@@ -22,11 +22,9 @@ mongoose.connect(process.env.DBURI, {
     useCreateIndex: true,
     useFindAndModify: false
 }, (err, res) => {
-
     if (err) {
         throw err;
     }
-
     console.log("Data Base Online");
 });
 
@@ -42,10 +40,15 @@ const Feedback = require('./models/Feedback');
 const Issue = require('./models/Issue');
 
 //First party Middleware definitions
+const KeyMiddleWare = require('./Midlewares/Key');
 const UserMiddleWare = require('./Midlewares/User');
+
+//First party Middleware instances
+const keyMiddleWare = new KeyMiddleWare();
 const userMiddleWare = new UserMiddleWare(new Crud(User));
 
 //First party Middlewares injections
+app.use(keyMiddleWare.verifyKey);
 app.use('/user', userMiddleWare.verifyUsers);
 
 // Routes definition with Models
