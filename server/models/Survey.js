@@ -5,28 +5,22 @@ let Schema = mongoose.Schema;
 
 //This Schema is to evaluate the rating of the different route available in the system.
 let surveySchema = new Schema({
-    ID: {
+    routeID: {
         type: String,
         required: [true, 'The route ID must be provided'],
-        unique: true
     },
-    stats: {
-        raitings: [[Number]],
-        ratingAmount: {
-            type: Number,
-            required: false
-        }
+    userID: {
+        type: String,
+        required: [true, 'a user ID must be provided'],
     },
-    review: [{
-        userID: {
-            type: String,
-            required: false
-        },
-        comment: {
-            type: String,
-            required: false
-        }
-    }]
+    raiting: {
+        type: Number,
+        required: false
+    },
+    comment: {
+        type: String,
+        required: false
+    }
 });
 
 surveySchema.plugin(uniqueValidator, {

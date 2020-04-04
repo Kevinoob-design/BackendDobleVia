@@ -57,14 +57,14 @@ module.exports = function (prefix, app, db) {
     //PUT Request to handled the update of existing data from respective DB instance for specifed MODEL.
     app.put(`${prefix}/:ID`, (req, res) => {
 
-        let ID = req.params.ID;
-        let body = req.body;
+        const ID = req.ID || req.params.ID;
+        const body = req.body;
         console.log(body);
 
         db.update(ID, body).then(resolve => {
             res.status(200).json({
                 ok: true,
-                resolve,
+                resolve: 'Update succesfull',
             });
         }).catch(err => {
             res.status(400).json({
@@ -77,7 +77,7 @@ module.exports = function (prefix, app, db) {
     //DELETE Request to handled the deletion of existing data from respective DB instance for specifed MODEL.
     app.delete(`${prefix}/:ID`, (req, res) => {
 
-        let ID = req.params.ID;
+        const ID = req.ID || req.params.ID;
         console.log(req.body);
 
         db.delete(ID).then(resolve => {

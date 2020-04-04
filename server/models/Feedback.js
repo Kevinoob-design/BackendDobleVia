@@ -5,28 +5,21 @@ let Schema = mongoose.Schema;
 
 //This Schema is for internal use ONLY, this will let administrators of the app know where they can improve and what their users think about the app.
 let feedbackSchema = new Schema({
+    userID: {
+        type: String,
+        required: false,
+        unique: true
+    },
     rating: {
         type: Number,
     },
     review: {
-        userID: {
-            type: String,
-            required: false
-        },
-        comment: {
-            type: String,
-            required: true
-        }
+        type: String,
+        required: true
     },
     improvements: {
-        userID: {
-            type: String,
-            required: false
-        },
-        comment: {
-            type: String,
-            required: false
-        }
+        type: String,
+        required: false
     }
 });
 

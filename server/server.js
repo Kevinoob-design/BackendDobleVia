@@ -30,22 +30,31 @@ mongoose.connect(process.env.DBURI, {
     console.log("Data Base Online");
 });
 
-// Models definition
+//CRUD definition
 const Crud = require('./controllers/DbController');
+
+//Models definition
 const Route = require('./models/Route');
 const User = require('./models/User');
+const Survey = require('./models/Survey');
+const Contact = require('./models/Contact');
+const Feedback = require('./models/Feedback');
+const Issue = require('./models/Issue');
 
 //First party Middleware definitions
 const UserMiddleWare = require('./Midlewares/User');
 const userMiddleWare = new UserMiddleWare(new Crud(User));
 
 //First party Middlewares injections
-app.use('/user/', userMiddleWare.verifyUsers);
-
+app.use('/user', userMiddleWare.verifyUsers);
 
 // Routes definition with Models
 require('./controllers/api')('/route', app, new Crud(Route));
 require('./controllers/api')('/user', app, new Crud(User));
+require('./controllers/api')('/survey', app, new Crud(Survey));
+require('./controllers/api')('/contact', app, new Crud(Contact));
+require('./controllers/api')('/feedback', app, new Crud(Feedback));
+require('./controllers/api')('/issue', app, new Crud(Issue));
 
 //Starting server on PORT
 app.listen(process.env.PORT, () => {
