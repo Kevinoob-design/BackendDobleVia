@@ -1,13 +1,13 @@
-//Declaring thirdparty libraries to be used on first party middleware.
+// Declaring thirdparty libraries to be used on first party middleware.
 const uuidv4 = require('uuid/v4');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 
-//Export of JS Class that serve as first party middleware
+// Export of JS Class that serve as first party middleware
 module.exports = function (db) {
 
-    //Verify type of Request and redirect to hadleler method.
+    // Verify type of Request and redirect to hadleler method.
     this.verifyUsers = (req, res, next) => {
         switch (req.method) {
             case 'GET':
@@ -78,7 +78,7 @@ module.exports = function (db) {
         });
     }
 
-    //Verify a given USER Token or asswell Credentias such as User/Email and Password
+    // Verify a given USER Token or asswell Credentias such as User/Email and Password
     this.getUser = (req, res, next) => {
         this.verifyUser(req).then(result => {
             jwt.sign({ ID: result.ID }, process.env.jwtKey, (error, token) => {
@@ -101,7 +101,7 @@ module.exports = function (db) {
         })
     }
 
-    //Creates a new user with password encryptions and generates a token that will be returned to client.
+    // Creates a new user with password encryptions and generates a token that will be returned to client.
     this.createUser = (req, res, next) => {
         this.envryptPassword(req).then(hash => {
             const user = {

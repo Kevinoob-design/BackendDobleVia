@@ -1,21 +1,21 @@
-//Basic required configuration
+// Basic required configuration
 require('dotenv').config();
 require('../config/config');
 
-//Server declaration
+// Server declaration
 const app = require('express')();
 
-//Third party middlewares definitions
+// Third party middlewares definitions
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
-//Third party Middlewares injections
+// Third party Middlewares injections
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-//Database connection with URI link AUTH
+// Database connection with URI link AUTH
 mongoose.connect(process.env.DBURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -28,10 +28,10 @@ mongoose.connect(process.env.DBURI, {
     console.log("Data Base Online");
 });
 
-//CRUD definition
+// CRUD definition
 const Crud = require('./controllers/DbController');
 
-//Models definition
+// Models definition
 const Route = require('./models/Route');
 const User = require('./models/User');
 const Survey = require('./models/Survey');
@@ -39,15 +39,15 @@ const Contact = require('./models/Contact');
 const Feedback = require('./models/Feedback');
 const Issue = require('./models/Issue');
 
-//First party Middleware definitions
+// First party Middleware definitions
 const KeyMiddleWare = require('./Midlewares/Key');
 const UserMiddleWare = require('./Midlewares/User');
 
-//First party Middleware instances
+// First party Middleware instances
 const keyMiddleWare = new KeyMiddleWare();
 const userMiddleWare = new UserMiddleWare(new Crud(User));
 
-//First party Middlewares injections
+// First party Middlewares injections
 app.use(keyMiddleWare.verifyKey);
 app.use('/user', userMiddleWare.verifyUsers);
 
@@ -59,7 +59,7 @@ require('./controllers/api')('/contact', app, new Crud(Contact));
 require('./controllers/api')('/feedback', app, new Crud(Feedback));
 require('./controllers/api')('/issue', app, new Crud(Issue));
 
-//Starting server on PORT
+// Starting server on PORT
 app.listen(process.env.PORT, () => {
     console.log(`Listening on port: ${process.env.PORT}`);
 });
