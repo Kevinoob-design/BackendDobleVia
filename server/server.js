@@ -48,8 +48,8 @@ const keyMiddleWare = new KeyMiddleWare();
 const userMiddleWare = new UserMiddleWare(new Crud(User));
 
 // First party Middlewares injections
-app.use(keyMiddleWare.verifyKey);
-app.use('/user', userMiddleWare.verifyUsers);
+app.use('/api', keyMiddleWare.verifyKey);
+app.use('/api/user', userMiddleWare.verifyUsers);
 
 // Routes definition with Models
 require('./controllers/api')('/api/route', app, new Crud(Route));
