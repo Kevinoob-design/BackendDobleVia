@@ -5,6 +5,9 @@ module.exports = function(){
             next();
         }
         else{
+            console.log('------------------------------- FORBIDDEN REQUEST ------------------------------- ');
+            console.log(req);
+            console.log('------------------------------- FORBIDDEN REQUEST ------------------------------- ');
             res.sendStatus(403);
         }
     }
