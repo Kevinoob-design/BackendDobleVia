@@ -52,12 +52,12 @@ app.use(keyMiddleWare.verifyKey);
 app.use('/user', userMiddleWare.verifyUsers);
 
 // Routes definition with Models
-require('./controllers/api')('/route', app, new Crud(Route));
-require('./controllers/api')('/user', app, new Crud(User));
-require('./controllers/api')('/survey', app, new Crud(Survey));
-require('./controllers/api')('/contact', app, new Crud(Contact));
-require('./controllers/api')('/feedback', app, new Crud(Feedback));
-require('./controllers/api')('/issue', app, new Crud(Issue));
+require('./controllers/api')('/api/route', app, new Crud(Route));
+require('./controllers/api')('/api/user', app, new Crud(User));
+require('./controllers/api')('/api/survey', app, new Crud(Survey));
+require('./controllers/api')('/api/contact', app, new Crud(Contact));
+require('./controllers/api')('/api/feedback', app, new Crud(Feedback));
+require('./controllers/api')('/api/issue', app, new Crud(Issue));
 
 // Starting server on PORT
 app.listen(process.env.PORT, () => {
