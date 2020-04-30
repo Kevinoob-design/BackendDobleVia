@@ -15,11 +15,19 @@ let surveySchema = new Schema({
     },
     raiting: {
         type: Number,
-        required: false
+        required: true
+    },
+    title: {
+        type: String,
+        required: true
     },
     comment: {
         type: String,
         required: false
+    },
+    timeStamp: {
+        type: Date,
+        required: true
     }
 });
 
