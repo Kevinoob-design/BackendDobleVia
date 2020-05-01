@@ -26,6 +26,10 @@ let routeSchema = new Schema({
             type: String,
             required: true
         },
+        reviewTitle: {
+            type: String,
+            required: false
+        },
         comment: {
             type: String,
             required: false
