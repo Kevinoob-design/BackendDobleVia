@@ -13,26 +13,24 @@ let routeSchema = new Schema({
         type: String,
         required: [true, 'The route name must be provided']
     },
-    survey:{
+    review: [{
         raitings: {
             type: [[Number]],
             required: true
         },
-        review: [{
-            userID: {
-                type: String,
-                required: true
-            },
-            userName:{
-                type: String,
-                required: true
-            },
-            comment: {
-                type: String,
-                required: false
-            }
-        }]
-    },
+        userID: {
+            type: String,
+            required: true
+        },
+        userName: {
+            type: String,
+            required: true
+        },
+        comment: {
+            type: String,
+            required: false
+        }
+    }],
     schedule: {
         startTime: {
             type: String,
