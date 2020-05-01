@@ -29,6 +29,10 @@ let routeSchema = new Schema({
         comment: {
             type: String,
             required: false
+        },
+        timeStamp: {
+            type: Date, 
+            default: Date.now
         }
     }],
     schedule: {
