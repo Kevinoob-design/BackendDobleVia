@@ -14,8 +14,9 @@ let routeSchema = new Schema({
         required: [true, 'The route name must be provided']
     },
     survey:{
-        stats: {
-            raitings: [[Number]],
+        raitings: {
+            type: [[Number]],
+            required: true
         },
         review: [{
             userID: {
