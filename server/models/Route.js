@@ -15,7 +15,7 @@ let routeSchema = new Schema({
     },
     review: [{
         raitings: {
-            type: [[Number]],
+            type: Number,
             required: true
         },
         userID: {
