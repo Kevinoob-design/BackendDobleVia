@@ -14,8 +14,8 @@ let routeSchema = new Schema({
         required: [true, 'The route name must be provided']
     },
     review: [{
-        raitings: {
-            type: mongoose.Decimal128,
+        raiting: {
+            type: String,
             required: true
         },
         userID: {
