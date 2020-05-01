@@ -16,15 +16,15 @@ let routeSchema = new Schema({
     survey:{
         stats: {
             raitings: [[Number]],
-            ratingsQA: {
-                type: Number,
-                required: false
-            }
         },
         review: [{
             userID: {
                 type: String,
-                required: false
+                required: true
+            },
+            userName:{
+                type: String,
+                required: true
             },
             comment: {
                 type: String,
