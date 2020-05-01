@@ -74,6 +74,26 @@ module.exports = function (prefix, app, db) {
         });
     });
 
+    //This PUT request is to update existing Array on a Existing object in the model.
+    app.put(`${prefix}/:ID/survey`, (req, res) => {
+
+        const ID = req.ID || req.params.ID;
+        const body = req.body;
+        console.log(body);
+
+        db.updateArray(ID, body).then(resolve => {
+            res.status(200).json({
+                ok: true,
+                resolve: 'Update succesfull',
+            });
+        }).catch(err => {
+            res.status(400).json({
+                ok: false,
+                err
+            });
+        });
+    });
+
     //DELETE Request to handled the deletion of existing data from respective DB instance for specifed MODEL.
     app.delete(`${prefix}/:ID`, (req, res) => {
 

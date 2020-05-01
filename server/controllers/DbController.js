@@ -77,6 +77,25 @@ module.exports = function (Schema) {
         });
     }
 
+    this.updateArray = (ID, object) => {
+        return new Promise((resolve, reject) => {
+            Schema.findOneAndUpdate({ ID }, {$push: object}, { new: true, runValidators: true }, (err, entity) => {
+
+                if (err) {
+                    reject(err);
+                }
+
+                if (!entity) {
+                    reject('ID was not found');
+                }
+
+                // io.emit("updated", entity);
+
+                resolve(entity);
+            });
+        });
+    }
+
     this.delete = (ID) => {
         return new Promise((resolve, reject) => {
             Schema.findOneAndRemove({ ID }, (err, deletedEntity) => {

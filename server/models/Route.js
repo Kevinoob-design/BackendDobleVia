@@ -15,7 +15,7 @@ let routeSchema = new Schema({
     },
     review: [{
         raitings: {
-            type: Number,
+            type: mongoose.Decimal128,
             required: true
         },
         userID: {
