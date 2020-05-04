@@ -3,7 +3,10 @@ require('dotenv').config();
 require('../config/config');
 
 // Server declaration
-const app = require('express')();
+const express = require('express');
+const app = express();
+
+app.use(express.static(__dirname + '/public/build'));
 
 // Third party middlewares definitions
 const mongoose = require('mongoose');
@@ -58,6 +61,10 @@ require('./controllers/api')('/api/survey', app, new Crud(Survey));
 require('./controllers/api')('/api/contact', app, new Crud(Contact));
 require('./controllers/api')('/api/feedback', app, new Crud(Feedback));
 require('./controllers/api')('/api/issue', app, new Crud(Issue));
+
+app.get('/', (req, res) => {
+    res.sendFile('./Public');
+});
 
 // Starting server on PORT
 app.listen(process.env.PORT, () => {
