@@ -62,10 +62,6 @@ require('./controllers/api')('/api/contact', app, new Crud(Contact));
 require('./controllers/api')('/api/feedback', app, new Crud(Feedback));
 require('./controllers/api')('/api/issue', app, new Crud(Issue));
 
-app.get('/', (req, res) => {
-    res.sendFile('./Public');
-});
-
 // Starting server on PORT
 app.listen(process.env.PORT, () => {
     console.log(`Listening on port: ${process.env.PORT}`);
