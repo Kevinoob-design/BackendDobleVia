@@ -5,8 +5,9 @@ require('../config/config');
 // Server declaration
 const express = require('express');
 const app = express();
+const path = require('path');
 
-app.use(express.static(__dirname + '/public/build'));
+app.use(express.static(path.join(__dirname, 'client/build')));
 
 // Third party middlewares definitions
 const mongoose = require('mongoose');
