@@ -1,6 +1,6 @@
 // Basic required configuration
 require('dotenv').config();
-require('../config/config');
+require('./config/config');
 
 // Server declaration
 const express = require('express');
@@ -33,35 +33,40 @@ mongoose.connect(process.env.DBURI, {
 });
 
 // CRUD definition
-const Crud = require('./controllers/DbController');
+const Crud = require('./src/db/DbController');
 
 // Models definition
-const Route = require('./models/Route');
-const User = require('./models/User');
-const Survey = require('./models/Survey');
-const Contact = require('./models/Contact');
-const Feedback = require('./models/Feedback');
-const Issue = require('./models/Issue');
+const Route = require('./src/models/Route');
+const Stop = require('./src/models/Stop');
+const User = require('./src/models/User');
+const Survey = require('./src/models/Survey');
+const Contact = require('./src/models/Contact');
+const Feedback = require('./src/models/Feedback');
+const Issue = require('./src/models/Issue');
 
 // First party Middleware definitions
-const KeyMiddleWare = require('./Midlewares/Key');
-const UserMiddleWare = require('./Midlewares/User');
+const KeyMiddleWare = require('./src/Midlewares/Key');
+const UserMiddleWare = require('./src/Midlewares/User');
+// const StopMiddleware = require('./src/Midlewares/Stop');
 
 // First party Middleware instances
 const keyMiddleWare = new KeyMiddleWare();
 const userMiddleWare = new UserMiddleWare(new Crud(User));
+// const stopMiddleware = new StopMiddleware(new Crud(Stop), new Crud(Route));
 
 // First party Middlewares injections
 app.use('/api', keyMiddleWare.verifyKey);
 app.use('/api/user', userMiddleWare.verifyUsers);
+// app.use('/api/newroute', stopMiddleware.verifyStop);
 
 // Routes definition with Models
-require('./controllers/api')('/api/route', app, new Crud(Route));
-require('./controllers/api')('/api/user', app, new Crud(User));
-require('./controllers/api')('/api/survey', app, new Crud(Survey));
-require('./controllers/api')('/api/contact', app, new Crud(Contact));
-require('./controllers/api')('/api/feedback', app, new Crud(Feedback));
-require('./controllers/api')('/api/issue', app, new Crud(Issue));
+require('./src/service/General')('/api/route', app, new Crud(Route));
+require('./src/service/Stops')('/api/newroute', app, new Crud(Stop), new Crud(Route));
+require('./src/service/General')('/api/user', app, new Crud(User));
+require('./src/service/General')('/api/survey', app, new Crud(Survey));
+require('./src/service/General')('/api/contact', app, new Crud(Contact));
+require('./src/service/General')('/api/feedback', app, new Crud(Feedback));
+require('./src/service/General')('/api/issue', app, new Crud(Issue));
 
 // Starting server on PORT
 app.listen(process.env.PORT, () => {

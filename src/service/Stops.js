@@ -1,10 +1,12 @@
-//Module class to declare a rehusable RESTfull API that serves as CRUD for Data Base especified Model.
-module.exports = function (prefix, app, db) {
+const uuidv4 = require('uuid/v4');
 
-    //GET Request to handled to get respective all data from DB instance data for specifed MODEL.
+//Module class to declare a rehusable RESTfull API that serves as CRUD for Data Base especified Model.
+module.exports = function (prefix, app, stopSchema, routeSchema) {
+
+    //GET Request to handled to get respective all data from stopSchema instance data for specifed MODEL.
     app.get(prefix, (req, res) => {
         // console.log(req.originalUrl);
-        db.get().then(resolve => {
+        stopSchema.get().then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve,
@@ -17,10 +19,10 @@ module.exports = function (prefix, app, db) {
         });
     });
 
-    //GET Request to handled to get one by ID from respective DB instance data for specifed MODEL.
+    //GET Request to handled to get one by ID from respective stopSchema instance data for specifed MODEL.
     app.get(`${prefix}/:ID`, (req, res) => {
         const ID = req.ID || req.params.ID;
-        db.getOne(ID).then(resolve => {
+        stopSchema.getOne(ID).then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve,
@@ -33,35 +35,62 @@ module.exports = function (prefix, app, db) {
         });
     });
 
-    //POST Request to handled the creation of new data from respective DB instance for specifed MODEL.
+    //POST Request to handled the creation of new data from respective stopSchema instance for specifed MODEL.
     app.post(prefix, (req, res) => {
 
         let body = req.body;
-        console.log(body);
+        console.log(req.body);
 
-        db.save(body).then(resolve => {
+        var stops;
+        var added = 0;
+
+        req.body['position'].forEach(async position => {
+
+            var resolve = await stopSchema.getNear(position['LatLng'], 200);
+            
+            if (resolve.length > 0) {
+                console.log(resolve[0]['ID']);
+                console.log(req.body.ID);
+                var resolve = await stopSchema.updateArray(resolve[0]['ID'], { routesID: req.body.ID });
+            }
+            else {
+                var resolve = await stopSchema.save({
+                    ID: uuidv4(),
+                    location: { type: 'Point', coordinates: req.body['position'][0]['LatLng'] },
+                    formattedAddress: position['streetName'],
+                    routesID: req.body.ID
+                });
+                added++;
+            }
+
+            stops = resolve;
+        });
+
+        routeSchema.save(req.body).then(resolve => {
             res.status(200).json({
                 ok: true,
-                token: req.token,
                 resolve,
+                stops,
+                added,
+                msg: 'Update succesfull',
             });
+
         }).catch(err => {
             res.status(400).json({
                 ok: false,
                 err
             });
-        });
-
+        })
     });
 
-    //PUT Request to handled the update of existing data from respective DB instance for specifed MODEL.
+    //PUT Request to handled the update of existing data from respective stopSchema instance for specifed MODEL.
     app.put(`${prefix}/:ID`, (req, res) => {
 
         const ID = req.ID || req.params.ID;
         const body = req.body;
         console.log(body);
 
-        db.update(ID, body).then(resolve => {
+        stopSchema.update(ID, body).then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve: 'Update succesfull',
@@ -75,13 +104,13 @@ module.exports = function (prefix, app, db) {
     });
 
     //This PUT request is to update existing Array on a Existing object in the model.
-    app.put(`${prefix}/:ID/survey`, (req, res) => {
+    app.put(`${prefix}/:ID/updateOne`, (req, res) => {
 
         const ID = req.ID || req.params.ID;
         const body = req.body;
         console.log(body);
 
-        db.updateArray(ID, body).then(resolve => {
+        stopSchema.updateArray(ID, body).then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve: 'Update succesfull',
@@ -94,13 +123,13 @@ module.exports = function (prefix, app, db) {
         });
     });
 
-    //DELETE Request to handled the deletion of existing data from respective DB instance for specifed MODEL.
+    //DELETE Request to handled the deletion of existing data from respective stopSchema instance for specifed MODEL.
     app.delete(`${prefix}/:ID`, (req, res) => {
 
         const ID = req.ID || req.params.ID;
         console.log(req.body);
 
-        db.delete(ID).then(resolve => {
+        stopSchema.delete(ID).then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve,
@@ -113,15 +142,3 @@ module.exports = function (prefix, app, db) {
         });
     });
 }
-
-// const server = app.listen(process.env.PORT, () => {
-//     console.log("Listening on port: ",
-//         process.env.PORT);
-// });
-
-// const io = require('socket.io')(server);
-
-// io.on('connection', (socket) => {
-//     console.log('The socket ID of the device: ' + socket.id);
-//     console.log('The client is: ' + socket.client.request);
-// });

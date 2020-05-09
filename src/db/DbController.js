@@ -11,6 +11,24 @@ module.exports = function (Schema) {
         });
     }
 
+    this.getNear = (LatLng, distance) => {
+        return new Promise((resolve, reject) => {
+            Schema.aggregate().near({
+                near: {
+                    'type': 'Point',
+                    'coordinates': LatLng
+                },
+                maxDistance: distance,
+                spherical: true,
+                distanceField: "dist.calculated"
+            }).then(res => {
+                resolve(res);
+            }).catch(err => {
+                reject(err);
+            });
+        });
+    }
+
     this.getOne = (ID) => {
         return new Promise((resolve, reject) => {
             Schema.findOne({ ID }).exec((err, entity) => {
@@ -28,7 +46,7 @@ module.exports = function (Schema) {
 
     this.getUserByEmail = (email) => {
         return new Promise((resolve, reject) => {
-            Schema.findOne({email}).exec((err, entity) => {
+            Schema.findOne({ email }).exec((err, entity) => {
                 if (err) {
                     reject(err);
                 }
@@ -79,7 +97,7 @@ module.exports = function (Schema) {
 
     this.updateArray = (ID, object) => {
         return new Promise((resolve, reject) => {
-            Schema.findOneAndUpdate({ ID }, {$push: object}, { new: true, runValidators: true }, (err, entity) => {
+            Schema.findOneAndUpdate({ ID }, { $addToSet: object }, { new: true, runValidators: true }, (err, entity) => {
 
                 if (err) {
                     reject(err);
