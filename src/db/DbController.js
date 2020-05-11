@@ -29,6 +29,17 @@ module.exports = function (Schema) {
         });
     }
 
+    this.getStopsFromRoute = (ID) => {
+        return new Promise((resolve, reject) => {
+            Schema.find({routesID: { $all: [ID] } }).exec((err, docs) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve(docs);
+            });
+        });
+    }
+
     this.getOne = (ID) => {
         return new Promise((resolve, reject) => {
             Schema.findOne({ ID }).exec((err, entity) => {
