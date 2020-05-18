@@ -24,6 +24,7 @@ module.exports = function (Schema) {
             }).then(res => {
                 resolve(res);
             }).catch(err => {
+                console.log(err);
                 reject(err);
             });
         });
@@ -31,7 +32,7 @@ module.exports = function (Schema) {
 
     this.getStopsFromRoute = (ID) => {
         return new Promise((resolve, reject) => {
-            Schema.find({routesID: { $all: [ID] } }).exec((err, docs) => {
+            Schema.find({ routesID: { $all: [ID] } }).exec((err, docs) => {
                 if (err) {
                     reject(err);
                 }
@@ -76,6 +77,20 @@ module.exports = function (Schema) {
             var schema = new Schema(object);
 
             schema.save((err, entity) => {
+                if (err) {
+                    reject(err);
+                }
+
+                // io.emit("news", entity);
+
+                resolve(entity)
+            });
+        });
+    }
+
+    this.saveMany = (object) => {
+        return new Promise((resolve, reject) => {
+            Schema.insertMany(object, (err, entity) => {
                 if (err) {
                     reject(err);
                 }

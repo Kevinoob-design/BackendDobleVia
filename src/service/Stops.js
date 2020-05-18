@@ -1,5 +1,6 @@
 const uuidv4 = require('uuid/v4');
 const axios = require('axios');
+const distance = require('@turf/distance').default;
 
 //Module class to declare a rehusable RESTfull API that serves as CRUD for Data Base especified Model.
 module.exports = function (prefix, app, stopSchema, routeSchema) {
@@ -80,61 +81,102 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
         let body = req.body;
         console.log(req.body);
 
-        var stops;
+        var oldStops = [];
+        var newStops = [];
         var added = 0;
 
-        getSnapedPolylines(req.body['position']).then(async (positions) => {
+        getSnapedPolylines(req.body['position']).then((trayectory) => {
+            stopSchema.get().then(stops => {
+                if (stops.length > 0) {
 
-            for (let index = 0; index < positions.length; index++) {
-                const position = positions[index];
+                    for (let i = 0; i < req.body['position'].length; i++) {
+                        const position = req.body['position'][i];
 
-                var resolve = await stopSchema.getNear(position['LatLng'], 300);
+                        var isNewStop = '';
 
-                if (resolve.length > 0) {
-                    console.log(resolve[0]['ID']);
-                    console.log(req.body.ID);
-                    var resolve = await stopSchema.updateArray(resolve[0]['ID'], { routesID: req.body.ID });
+                        for (let j = 0; j < stops.length; j++) {
+                            const stop = stops[j];
+
+                            var dist = distance(position['LatLng'], stop.location.coordinates, {
+                                units: 'kilometers'
+                            });
+
+                            if (dist <= 0.15) {
+                                console.log(req.body.ID);
+                                isNewStop = stop['ID'];
+                                oldStops.push(stop);
+                            }
+                        }
+
+                        if (isNewStop) {
+                            stopSchema.updateArray(isNewStop, { routesID: req.body.ID });
+                        }
+                        else{
+                            stopSchema.save({
+                                ID: uuidv4(),
+                                location: { type: 'Point', coordinates: position['LatLng'] },
+                                formattedAddress: position['streetName'],
+                                routesID: req.body.ID
+                            });
+                            added++;
+                            newStops.push(stops);
+                        }
+                    }
+                } else {
+                    for (let i = 0; i < req.body['position'].length; i++) {
+                        const position = req.body['position'][i];
+
+                        newStops.push({
+                            ID: uuidv4(),
+                            location: { type: 'Point', coordinates: position['LatLng'] },
+                            formattedAddress: position['streetName'],
+                            routesID: req.body.ID
+                        })
+
+                    }
+                    stopSchema.saveMany(newStops);
                 }
-                else {
-                    var resolve = await stopSchema.save({
-                        ID: uuidv4(),
-                        location: { type: 'Point', coordinates: req.body['position'][0]['LatLng'] },
-                        formattedAddress: position['streetName'],
-                        routesID: req.body.ID
+
+                var obj = req.body;
+                obj.trayectory = trayectory;
+
+                routeSchema.save(obj).then(resolve => {
+                    res.status(200).json({
+                        ok: true,
+                        resolve,
+                        oldStops,
+                        newStops,
+                        added,
+                        msg: 'Update succesfull',
                     });
-                    added++;
-                }
 
-                stops = resolve;
-
-            }
-
-            routeSchema.save(req.body).then(resolve => {
-                res.status(200).json({
-                    ok: true,
-                    resolve,
-                    stops,
-                    added,
-                    msg: 'Update succesfull',
-                });
-
+                }).catch(err => {
+                    console.log(err);
+                    res.status(400).json({
+                        ok: false,
+                        err
+                    });
+                })
             }).catch(err => {
+                console.log(err);
                 res.status(400).json({
                     ok: false,
                     err
                 });
-            })
+            });
+
         }).catch(err => {
+            console.log(err);
             res.status(400).json({
                 ok: false,
                 err
             });
-        });
+        })
     });
 
     function getSnapedPolylines(positions) {
         return new Promise((resolve, reject) => {
-            var apiKey = process.env.GOOGLE_API_KEY;
+            var apiKey = process.env.GOOGLE_API_KEY || 'AIzaSyDANio1kmkzoNrYIPkxWAF5P86ZXok1I0U';
             var path = '';
 
             positions.forEach(position => {
@@ -154,20 +196,22 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                     var positions = [];
 
                     for (var i = 0; i < myMap.length; i++) {
-                        
-                        position = {
-                            LatLng: [myMap[i]['location']['latitude'], myMap[i]['location']['longitude']]
-                        }
 
-                        positions.push(position);
+                        // position = [myMap[i]['location']['latitude'], myMap[i]['location']['longitude']]
+
+                        position = { type: 'Point', coordinates: [myMap[i]['location']['latitude'], myMap[i]['location']['longitude']] },
+
+                            positions.push(position);
                     }
                     resolve(positions);
                 } else {
                     console.log(response)
+                    reject(response);
                 }
 
             }).catch(err => {
                 console.log(err);
+                reject(err);
             });
         });
     }

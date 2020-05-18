@@ -66,6 +66,18 @@ let routeSchema = new Schema({
         details: String,
         warnings: String,
     },
+    trayectory:[{
+        type:{
+            type: String,
+            enum: ['Point'],
+            required: [true, 'The location type must be provided']
+        },
+        coordinates:{
+            type: [Number],
+            index: '2dsphere',
+            required: [true, 'The polyline coordinates must be provided']
+        }
+    }],
     position: {
         type: [{
             LatLng: [],
