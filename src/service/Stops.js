@@ -36,6 +36,21 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
         });
     });
 
+    //GET Request to return the nearest stop from latitude and longitud provided in rage of 500m
+    app.get(`${prefix}/nearest`, (req, res) => {
+        stopSchema.getNear(req.body.coordinates, parseInt(req.body.distance)).then(resolve => {
+            res.status(200).json({
+                ok: true,
+                resolve,
+            });
+        }).catch(err => {
+            res.status(400).json({
+                ok: false,
+                err
+            });
+        });
+    });
+
     app.get(`${prefix}/:ID/routeStops`, (req, res) => {
         const ID = req.ID || req.params.ID;
         stopSchema.getStopsFromRoute(ID).then(sresolve => {
@@ -111,7 +126,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         if (isNewStop) {
                             stopSchema.updateArray(isNewStop, { routesID: req.body.ID });
                         }
-                        else{
+                        else {
                             stopSchema.save({
                                 ID: uuidv4(),
                                 location: { type: 'Point', coordinates: position['LatLng'] },

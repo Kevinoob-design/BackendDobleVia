@@ -13,15 +13,18 @@ module.exports = function (Schema) {
 
     this.getNear = (LatLng, distance) => {
         return new Promise((resolve, reject) => {
-            Schema.aggregate().near({
-                near: {
-                    'type': 'Point',
-                    'coordinates': LatLng
-                },
-                maxDistance: distance,
-                spherical: true,
-                distanceField: "dist.calculated"
-            }).then(res => {
+
+            Schema.aggregate([
+                {
+                    $geoNear: {
+                        near: { type: "Point", coordinates: LatLng },
+                        distanceField: "dist.calculated",
+                        maxDistance: distance,
+                        includeLocs: "dist.location",
+                        spherical: true
+                    }
+                }
+            ]).then(res => {
                 resolve(res);
             }).catch(err => {
                 console.log(err);
