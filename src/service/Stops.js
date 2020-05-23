@@ -37,7 +37,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
     });
 
     //GET Request to return the nearest stop from latitude and longitud provided in rage of 500m
-    app.get(`${prefix}/nearest`, (req, res) => {
+    app.post(`${prefix}/nearest`, (req, res) => {
         stopSchema.getNear(req.body.coordinates, parseInt(req.body.distance)).then(resolve => {
             res.status(200).json({
                 ok: true,
