@@ -38,6 +38,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
     //GET Request to return the nearest stop from latitude and longitud provided in rage of 500m
     app.post(`${prefix}/nearest`, (req, res) => {
+        console.log(req.body);
         stopSchema.getNear(req.body.coordinates, parseInt(req.body.distance)).then(resolve => {
             res.status(200).json({
                 ok: true,
@@ -125,12 +126,25 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
                         if (isNewStop) {
                             stopSchema.updateArray(isNewStop, { routesID: req.body.ID });
+
+                            if (req.body.aditionalInfo.transportType == 'metro' || req.body.aditionalInfo.transportType == 'teleferico') {
+                                stopSchema.save({
+                                    ID: uuidv4(),
+                                    location: { type: 'Point', coordinates: position['LatLng'] },
+                                    formattedAddress: position['streetName'],
+                                    transportType: req.body.aditionalInfo.transportType,
+                                    routesID: req.body.ID
+                                });
+                                added++;
+                                newStops.push(stops);
+                            }
                         }
                         else {
                             stopSchema.save({
                                 ID: uuidv4(),
                                 location: { type: 'Point', coordinates: position['LatLng'] },
                                 formattedAddress: position['streetName'],
+                                transportType: req.body.aditionalInfo.transportType,
                                 routesID: req.body.ID
                             });
                             added++;
@@ -214,9 +228,8 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
                         // position = [myMap[i]['location']['latitude'], myMap[i]['location']['longitude']]
 
-                        position = { type: 'Point', coordinates: [myMap[i]['location']['latitude'], myMap[i]['location']['longitude']] },
-
-                            positions.push(position);
+                        position = { type: 'Point', coordinates: [myMap[i]['location']['latitude'], myMap[i]['location']['longitude']] };
+                        positions.push(position);
                     }
                     resolve(positions);
                 } else {

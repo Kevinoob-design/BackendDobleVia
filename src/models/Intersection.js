@@ -22,6 +22,7 @@ let stopSchema = new Schema({
             required: true
         }
     },
+    transportType: String,
     formattedAddress: String,
     routesID: [String]
 });
