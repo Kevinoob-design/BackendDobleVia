@@ -1,5 +1,8 @@
 module.exports = function (routes, collissions) {
 
+    console.log(routes);
+    console.log(collissions);
+
     // The graph
     const adjacencyList = new Map();
 
