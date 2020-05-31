@@ -1,8 +1,8 @@
 module.exports = function (Schema) {
 
-    this.get = () => {
+    this.get = (fields) => {
         return new Promise((resolve, reject) => {
-            Schema.find({}).exec((err, docs) => {
+            Schema.find({}, fields).exec((err, docs) => {
                 if (err) {
                     reject(err);
                 }
@@ -11,7 +11,7 @@ module.exports = function (Schema) {
         });
     }
 
-    this.getNear = (LatLng, distance) => {
+    this.getNear = (LatLng, distance, limit) => {
         return new Promise((resolve, reject) => {
 
             Schema.aggregate([
@@ -23,12 +23,31 @@ module.exports = function (Schema) {
                         includeLocs: "dist.location",
                         spherical: true
                     }
-                }
+                },
+                { $limit: limit || 20 }
             ]).then(res => {
                 resolve(res);
             }).catch(err => {
                 console.log(err);
                 reject(err);
+            });
+        });
+    }
+
+    this.getStopCollissions = () => {
+        return new Promise((resolve, reject) => {
+
+            Schema.find({
+                $nor: [
+                    { routesID: { $exists: false } },
+                    { routesID: { $size: 0 } },
+                    { routesID: { $size: 1 } }
+                ]
+            }, { routesID: 1, _id: 0 }).exec((err, docs) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve(docs);
             });
         });
     }

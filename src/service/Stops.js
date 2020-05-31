@@ -1,6 +1,7 @@
 const uuidv4 = require('uuid/v4');
 const axios = require('axios');
 const distance = require('@turf/distance').default;
+const SearchEngine = require('../controller/search');
 
 //Module class to declare a rehusable RESTfull API that serves as CRUD for Data Base especified Model.
 module.exports = function (prefix, app, stopSchema, routeSchema) {
@@ -75,10 +76,87 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
         });
     });
 
-    //GET Request to handled to get one by ID from respective stopSchema instance data for specifed MODEL.
-    app.get(`${prefix}/:ID`, (req, res) => {
+    app.post(`${prefix}/search`, (req, res) => {
+        console.log(req.body);
+        stopSchema.getNear(req.body.coordinates.from, 1000, 1).then(nearFrom => {
+            stopSchema.getNear(req.body.coordinates.to, 1000, 1).then(nearTo => {
+
+                let isSame;
+
+                for (let i = 0; i < nearFrom.length; i++) {
+                    const from = nearFrom[i];
+                    isSame = from.routesID.filter(function (fromID) {
+                        let conllissions;
+
+                        for (let j = 0; j < nearTo.length; j++) {
+                            const to = nearTo[j];
+                            conllissions = to.routesID.filter(function (toID) {
+                                return toID == fromID;
+                            });
+                        }
+                        return conllissions.length > 0 ? true : false;
+                    });
+                }
+
+                if (isSame.length > 0) {
+                    res.status(200).json({
+                        ok: true,
+                        resolve: {
+                            best: isSame,
+                            from: nearFrom,
+                            to: nearTo
+                        }
+                    });
+                } else {
+                    routeSchema.get({ ID: 1, _id: 0 }).then(routesID => {
+                        stopSchema.getStopCollissions({ ID: 1, _id: 0 }).then(collissions => {
+
+                            routesID = routesID.map(routes => routes.ID);
+                            collissions = collissions.map(collission => collission.routesID);
+                            const from = nearFrom.map(from => from.routesID);
+                            const to = nearTo.map(to => to.routesID.map(routeID => routeID));
+
+                            const searchEngine = new SearchEngine(routesID, collissions);
+
+                            // searchEngine.bfs(from[0], to[0][0]);
+                            searchEngine.dfs(from[0][0], to[0][0]);
+
+                            res.status(200).json({
+                                ok: true,
+                                collissions,
+                            });
+                        }).catch(err => {
+                            res.status(400).json({
+                                ok: false,
+                                err
+                            });
+                        });
+
+                    }).catch(err => {
+                        res.status(400).json({
+                            ok: false,
+                            err
+                        });
+                    });
+                }
+
+            }).catch(err => {
+                res.status(400).json({
+                    ok: false,
+                    err
+                });
+            });
+        }).catch(err => {
+            res.status(400).json({
+                ok: false,
+                err
+            });
+        });
+    });
+
+    app.get(`${prefix}/search`, (req, res) => {
         const ID = req.ID || req.params.ID;
-        stopSchema.getOne(ID).then(resolve => {
+        stopSchema.getOne().then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve,
@@ -252,7 +330,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
         const body = req.body;
         console.log(body);
 
-        stopSchema.update(ID, body).then(resolve => {
+        routeSchema.update(ID, body).then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve: 'Update succesfull',
@@ -272,7 +350,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
         const body = req.body;
         console.log(body);
 
-        stopSchema.updateArray(ID, body).then(resolve => {
+        routeSchema.updateArray(ID, body).then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve: 'Update succesfull',
@@ -291,7 +369,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
         const ID = req.ID || req.params.ID;
         console.log(req.body);
 
-        stopSchema.delete(ID).then(resolve => {
+        routeSchema.delete(ID).then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve,
