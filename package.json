@@ -5,7 +5,10 @@
     "main": "server/server.js",
     "scripts": {
         "start": "nodemon server.js",
-        "heroku": "heroku logs --tail"
+        "heroku": "heroku logs --tail",
+        "push": "git push && git push heroku master",
+        "update": "git push && git push heroku master && heroku logs --tail",
+        "git":"git status && git add . && git status && git commit -m $msg && git push"
     },
     "author": "",
     "license": "ISC",
