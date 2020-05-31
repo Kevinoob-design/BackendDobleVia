@@ -177,6 +177,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
         var oldStops = [];
         var newStops = [];
+        var closeStops = [];
         var added = 0;
 
         getSnapedPolylines(req.body['position']).then((trayectory) => {
@@ -186,7 +187,8 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                     for (let i = 0; i < req.body['position'].length; i++) {
                         const position = req.body['position'][i];
 
-                        var isNewStop = '';
+                        var isOldStop = '';
+                        var isCloseStop = '';
 
                         for (let j = 0; j < stops.length; j++) {
                             const stop = stops[j];
@@ -196,14 +198,20 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                             });
 
                             if (dist <= 0.15) {
-                                console.log(req.body.ID);
-                                isNewStop = stop['ID'];
+                                console.log(`Very close stop: ${req.body.ID}`);
+                                isOldStop = stop['ID'];
                                 oldStops.push(stop);
+                            }
+
+                            if (dist <= 0.300) {
+                                console.log(`Close enough: ${req.body.ID}`);
+                                isCloseStop = stop['ID'];
+                                closeStops.push(stop);
                             }
                         }
 
-                        if (isNewStop) {
-                            stopSchema.updateArray(isNewStop, { routesID: req.body.ID });
+                        if (isOldStop) {
+                            stopSchema.updateArray(isOldStop, { routesID: req.body.ID });
 
                             if (req.body.aditionalInfo.transportType == 'metro' || req.body.aditionalInfo.transportType == 'teleferico') {
                                 stopSchema.save({
@@ -218,8 +226,9 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                             }
                         }
                         else {
+                            const ID = uuidv4();
                             stopSchema.save({
-                                ID: uuidv4(),
+                                ID: ID,
                                 location: { type: 'Point', coordinates: position['LatLng'] },
                                 formattedAddress: position['streetName'],
                                 transportType: req.body.aditionalInfo.transportType,
@@ -227,6 +236,11 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                             });
                             added++;
                             newStops.push(stops);
+
+                            if (isCloseStop){
+                                stopSchema.updateArray(isCloseStop, { routesID: req.body.ID });
+                                stopSchema.updateArray(ID, { routesID: isCloseStop });
+                            }
                         }
                     }
                 } else {

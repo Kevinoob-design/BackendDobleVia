@@ -20,7 +20,6 @@ module.exports = function (routes, collissions) {
     // Create the Graph
     routes.forEach(addNode);
     collissions.forEach(collission => addEdge(...collission));
-
     console.log(adjacencyList);
 
     //------------------------------------------------------------------------------------------------------------------------
