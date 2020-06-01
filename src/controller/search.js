@@ -12,25 +12,29 @@ module.exports = function (routes, collissions) {
     }
 
     // Add edge, undirected
-    function addEdge(origin, destination) {
-        adjacencyList.get(origin).push(destination);
-        adjacencyList.get(destination).push(origin);
+    function addEdge(edges) {
+        for (let i = 0; i < edges.length; i++) {
+            if (i + 1 < edges.length) {
+                adjacencyList.get(edges[0]).push(edges[i + 1]);
+                adjacencyList.get(edges[i + 1]).push(edges[0]);
+            }
+        }
     }
 
     // Create the Graph
     routes.forEach(addNode);
-    collissions.forEach(collission => addEdge(...collission));
+    collissions.forEach(collission => addEdge(collission));
     console.log(adjacencyList);
 
     //------------------------------------------------------------------------------------------------------------------------
 
     // Breadth-first Search (BFS)
-    this.bfs = function (start, end) {
+    this.bfs = function (start, ends) {
         const visited = new Set();
-        const queue = start;
+        const queue = [start];
         const confirmed = [];
 
-        console.log(`starts in ${start}`);
+        // console.log(`starts in ${start}`);
 
         while (queue.length > 0) {
 
@@ -38,26 +42,29 @@ module.exports = function (routes, collissions) {
             const destinations = adjacencyList.get(route);
 
             for (const destination of destinations) {
-                if (destination === end) {
-                    // console.log(`starts in ${start}`);
-                    // confirmed.push(route === start ? [start, end] : [start, route, end]);
-                    console.log(`${route} - ${end} found!`);
+
+                for (const end of ends) {
+                    if (destination === end) {
+                        confirmed.push(route === start ? [start, end] : [start, route, end]);
+                        console.log(`${route} - ${end} found!`);
+                    }
                 }
 
                 if (!visited.has(destination)) {
                     visited.add(destination);
-                    queue.push(destination);
-                    console.log(destination);
+                    if(!ends.includes(destination)){
+                        queue.push(destination);
+                    }
+                    console.log(visited);
                 }
             }
         }
-
-        console.log(confirmed);
-
+        let filter = confirmed.filter((t={},a=>!(t[a]=a in t)));
+        console.log(filter);
     }
 
     // Depth-first Search (DFS)
-    this.dfs = function (start, end, visited = new Set()) {
+    this.dfs = function (start, ends, visited = new Set()) {
 
         visited.add(start);
         const destinations = adjacencyList.get(start);
@@ -65,13 +72,15 @@ module.exports = function (routes, collissions) {
 
         for (const destination of destinations) {
 
-            if (destination === end) {
-                console.log(`${start} - ${end} found!`);
-                return;
+            for (const end of ends) {
+                if (destination === end) {
+                    console.log(`${start} - ${end} found!`);
+                    return;
+                }
             }
 
             if (!visited.has(destination)) {
-                this.dfs(destination, end, visited);
+                this.dfs(destination, ends, visited);
                 console.log(destination);
             }
         }

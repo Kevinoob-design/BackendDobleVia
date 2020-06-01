@@ -118,8 +118,11 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
                             const searchEngine = new SearchEngine(routesID, collissions);
 
-                            // searchEngine.bfs(from[0], to[0][0]);
-                            searchEngine.dfs(from[0][0], to[0][0]);
+                            console.log(`Options for from: ${from[0]}`);
+                            console.log(`Options for to: ${to[0]}`);
+
+                            searchEngine.bfs(from[0][0], to[0]);
+                            // searchEngine.dfs(from[0][0], to[0]);
 
                             res.status(200).json({
                                 ok: true,
@@ -197,7 +200,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                                 units: 'kilometers'
                             });
 
-                            if (dist <= 0.15) {
+                            if (dist <= 0.50) {
                                 console.log(`Very close stop: ${req.body.ID}`);
                                 isOldStop = stop['ID'];
                                 oldStops.push(stop);
