@@ -154,7 +154,9 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
                             res.status(200).json({
                                 ok: true,
-                                suggested
+                                suggested,
+                                from: nearFrom,
+                                to: nearTo
                             });
                         }).catch(err => {
                             res.status(400).json({
