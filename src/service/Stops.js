@@ -114,13 +114,15 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                 }
 
                 if (isSame.length > 0) {
-                    res.status(200).json({
-                        ok: true,
-                        resolve: {
-                            best: isSame,
-                            from: nearFrom,
-                            to: nearTo
-                        }
+                    routeSchema.getOne(isSame[0]).then(suggested => {
+                        res.status(200).json({
+                            ok: true,
+                            resolve: {
+                                suggested,
+                                from: nearFrom,
+                                to: nearTo
+                            }
+                        });
                     });
                 } else {
                     routeSchema.get({ ID: 1, _id: 0 }).then(routesID => {
