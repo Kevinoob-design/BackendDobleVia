@@ -11,6 +11,17 @@ module.exports = function (Schema) {
         });
     }
 
+    this.getRange = (range, fields) => {
+        return new Promise((resolve, reject) => {
+            Schema.find({ID: {$in: range}}, fields).exec((err, docs) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve(docs);
+            });
+        });
+    }
+
     this.getNear = (LatLng, distance, limit) => {
         return new Promise((resolve, reject) => {
 

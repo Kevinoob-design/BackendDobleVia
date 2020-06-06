@@ -37,6 +37,21 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
         });
     });
 
+    app.post(`${prefix}/routes-in-range`, (req, res) => {
+        // console.log(req.originalUrl);
+        routeSchema.getRange(req.body.range).then(resolve => {
+            res.status(200).json({
+                ok: true,
+                resolve,
+            });
+        }).catch(err => {
+            res.status(400).json({
+                ok: false,
+                err
+            });
+        });
+    });
+
     //GET Request to return the nearest stop from latitude and longitud provided in rage of 500m
     app.post(`${prefix}/nearest`, (req, res) => {
         console.log(req.body);
@@ -109,7 +124,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                     });
                 } else {
                     routeSchema.get({ ID: 1, _id: 0 }).then(routesID => {
-                        stopSchema.getStopCollissions({ ID: 1, _id: 0 }).then(collissions => {
+                        stopSchema.getStopCollissions({ ID: 1, _id: 0 }).then(async collissions => {
 
                             routesID = routesID.map(routes => routes.ID);
                             collissions = collissions.map(collission => collission.routesID);
@@ -121,12 +136,23 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                             console.log(`Options for from: ${from[0]}`);
                             console.log(`Options for to: ${to[0]}`);
 
-                            searchEngine.bfs(from[0][0], to[0]);
+                            const filter = searchEngine.bfs(from[0][0], to[0]);
                             // searchEngine.dfs(from[0][0], to[0]);
+
+                            console.log(filter);
+                            const suggested = [];
+
+                            for (const ids of filter) {
+                                await routeSchema.getRange(ids).then(resolve => {
+                                    suggested.push(resolve);
+                                });
+                            }
+
+                            console.log(suggested);
 
                             res.status(200).json({
                                 ok: true,
-                                collissions,
+                                suggested
                             });
                         }).catch(err => {
                             res.status(400).json({
@@ -142,7 +168,6 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         });
                     });
                 }
-
             }).catch(err => {
                 res.status(400).json({
                     ok: false,
@@ -240,7 +265,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                             added++;
                             newStops.push(stops);
 
-                            if (isCloseStop){
+                            if (isCloseStop) {
                                 stopSchema.updateArray(isCloseStop, { routesID: req.body.ID });
                                 stopSchema.updateArray(ID, { routesID: isCloseStop });
                             }

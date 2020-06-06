@@ -60,7 +60,7 @@ module.exports = function (routes, collissions) {
             }
         }
         let filter = confirmed.filter((t={},a=>!(t[a]=a in t)));
-        console.log(filter);
+        return filter;
     }
 
     // Depth-first Search (DFS)
