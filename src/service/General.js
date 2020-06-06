@@ -17,6 +17,21 @@ module.exports = function (prefix, app, db) {
         });
     });
 
+    app.get(`${prefix}/all-users`, (req, res) => {
+        // console.log(req.originalUrl);
+        db.get({password: 0}).then(resolve => {
+            res.status(200).json({
+                ok: true,
+                resolve,
+            });
+        }).catch(err => {
+            res.status(400).json({
+                ok: false,
+                err
+            });
+        });
+    });
+
     //GET Request to handled to get one by ID from respective DB instance data for specifed MODEL.
     app.get(`${prefix}/:ID`, (req, res) => {
         const ID = req.ID || req.params.ID;

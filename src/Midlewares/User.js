@@ -44,9 +44,9 @@ module.exports = function (db) {
             } else if (req.headers['email'] && req.headers['password']) {
                 db.getUserByEmail(req.headers['email']).then(result => {
                     bcrypt.compare(req.headers['password'], result.password, (error, confirmed) => {
-                        if(confirmed){
+                        if (confirmed) {
                             resolve(result);
-                        }else{
+                        } else {
                             reject('Usuario o contrasena incorrectos');
                         }
                     });
@@ -82,16 +82,33 @@ module.exports = function (db) {
     this.getUser = (req, res, next) => {
         this.verifyUser(req).then(result => {
             jwt.sign({ ID: result.ID }, process.env.jwtKey, (error, token) => {
-                res.json({
-                    ok: true,
-                    token,
-                    resolve: {
-                        ID: result.ID,
-                        name: result.name,
-                        lastName: result.lastName,
-                        email: result.email,
-                    }
-                })
+                switch (req.originalUrl) {
+                    case "/api/user": res.json({
+                        ok: true,
+                        token,
+                        resolve: {
+                            ID: result.ID,
+                            name: result.name,
+                            lastName: result.lastName,
+                            email: result.email,
+                        }
+                    })
+                        break;
+
+                    case "/api/user/all-users":
+                        if (result.role == 'ADMIN') {
+                            next();
+                        } else {
+                            res.json({
+                                ok: false,
+                                errMsg: 'No tienes los derechos para este request'
+                            })
+                        }
+                        break;
+
+                    default: res.sendStatus(403);
+                        break;
+                }
             });
         }).catch(err => {
             res.json({
@@ -112,7 +129,7 @@ module.exports = function (db) {
                 password: hash,
                 role: 'USER'
             }
-    
+
             jwt.sign({ ID: user.ID }, process.env.jwtKey, (error, token) => {
                 error ? req.token = error : req.token = token;
                 req.body = user;
@@ -125,7 +142,7 @@ module.exports = function (db) {
 
     this.updateUser = (req, res, next) => {
         this.verifyUser(req).then(resolve => {
-            if(typeof req.body.password !== 'undefined'){
+            if (typeof req.body.password !== 'undefined') {
                 console.log(req.body.password);
                 this.envryptPassword(req).then(hash => {
                     req.ID = resolve.ID;
@@ -137,7 +154,7 @@ module.exports = function (db) {
                         err
                     });
                 })
-            }else{
+            } else {
                 req.ID = resolve.ID;
                 next();
             }
