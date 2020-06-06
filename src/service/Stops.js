@@ -114,11 +114,11 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                 }
 
                 if (isSame.length > 0) {
-                    routeSchema.getOne(isSame[0]).then(suggested => {
+                    routeSchema.getRange(isSame).then(suggested => {
                         res.status(200).json({
                             ok: true,
                             resolve: {
-                                suggested,
+                                suggested: [suggested],
                                 from: nearFrom,
                                 to: nearTo
                             }
@@ -154,9 +154,11 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
                             res.status(200).json({
                                 ok: true,
-                                suggested,
-                                from: nearFrom,
-                                to: nearTo
+                                resolve: {
+                                    suggested,
+                                    from: nearFrom,
+                                    to: nearTo
+                                }
                             });
                         }).catch(err => {
                             res.status(400).json({
