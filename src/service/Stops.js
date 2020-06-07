@@ -146,6 +146,22 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
                             for (const ids of filter) {
                                 await routeSchema.getRange(ids).then(resolve => {
+                                    console.log(ids);
+
+                                    for (let i = 0; i < resolve.length; i++) {
+                                        const r = resolve[i].ID;
+                                        const id = ids[i];
+
+                                        if (r != id) {
+                                            const locationId = ids.findIndex((innerId) => innerId == id);
+                                            const locationR = resolve.findIndex((route) => route.ID == id);
+
+                                            const temp = resolve[locationId];
+                                            resolve[locationId] = resolve[locationR];
+                                            resolve[locationR] = temp;
+                                        }
+                                    }
+
                                     suggested.push(resolve);
                                 });
                             }
