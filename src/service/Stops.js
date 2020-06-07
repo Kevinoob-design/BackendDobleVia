@@ -155,6 +155,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                             res.status(200).json({
                                 ok: true,
                                 resolve: {
+                                    routesID: filter,
                                     suggested,
                                     from: nearFrom,
                                     to: nearTo
