@@ -91,6 +91,7 @@ module.exports = function (db) {
                             name: result.name,
                             lastName: result.lastName,
                             email: result.email,
+                            role: result.role
                         }
                     })
                         break;
