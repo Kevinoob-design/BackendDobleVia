@@ -33,7 +33,10 @@ mongoose.connect(process.env.DBURI, {
 });
 
 // CRUD definition
-const Crud = require('./src/db/DbController');
+const Crud = require('./src/db/Crud');
+
+// DB definition
+const UserDB = require('./src/db/User');
 
 // Models definition
 const Route = require('./src/models/Route');
@@ -46,20 +49,20 @@ const Issue = require('./src/models/Issue');
 
 // First party Middleware definitions
 const KeyMiddleWare = require('./src/Midlewares/Key');
-const UserMiddleWare = require('./src/Midlewares/User');
+// const UserMiddleWare = require('./src/Midlewares/User');
 
 // First party Middleware instances
 const keyMiddleWare = new KeyMiddleWare();
-const userMiddleWare = new UserMiddleWare(new Crud(User));
+// const userMiddleWare = new UserMiddleWare(new Crud(User));
 
 // First party Middlewares injections
 app.use('/api', keyMiddleWare.verifyKey);
-app.use('/api/user', userMiddleWare.verifyUsers);
+// app.use('/api/user', userMiddleWare.verifyUsers);
 
 // Routes definition with Models
 require('./src/service/General')('/api/route', app, new Crud(Route));
 require('./src/service/Stops')('/api/newroute', app, new Crud(Intersection), new Crud(Route));
-require('./src/service/General')('/api/user', app, new Crud(User));
+require('./src/service/User')('/api/user', app, new UserDB());
 require('./src/service/General')('/api/survey', app, new Crud(Survey));
 require('./src/service/General')('/api/contact', app, new Crud(Contact));
 require('./src/service/General')('/api/feedback', app, new Crud(Feedback));

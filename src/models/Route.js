@@ -4,6 +4,10 @@ const uniqueValidator = require('mongoose-unique-validator');
 let Schema = mongoose.Schema;
 
 let routeSchema = new Schema({
+    ownerID: {
+        type: String,
+        required: [true, 'The owner ID most be provided'],
+    },
     ID: {
         type: String,
         required: [true, 'The route ID must be provided'],
@@ -13,32 +17,6 @@ let routeSchema = new Schema({
         type: String,
         required: [true, 'The route name must be provided']
     },
-    review: [{
-        raiting: {
-            type: String,
-            required: true
-        },
-        userID: {
-            type: String,
-            required: true
-        },
-        userName: {
-            type: String,
-            required: true
-        },
-        reviewTitle: {
-            type: String,
-            required: false
-        },
-        comment: {
-            type: String,
-            required: false
-        },
-        timeStamp: {
-            type: Date, 
-            default: Date.now
-        }
-    }],
     schedule: {
         startTime: {
             type: String,
@@ -66,13 +44,13 @@ let routeSchema = new Schema({
         details: String,
         warnings: String,
     },
-    trayectory:[{
-        type:{
+    trayectory: [{
+        type: {
             type: String,
             enum: ['Point'],
             required: [true, 'The location type must be provided']
         },
-        coordinates:{
+        coordinates: {
             type: [Number],
             index: '2dsphere',
             required: [true, 'The polyline coordinates must be provided']
@@ -84,6 +62,35 @@ let routeSchema = new Schema({
             streetName: String,
         }],
         required: [true, 'The polyline positions must be provided']
+    },
+    status: {
+        type: String,
+        enum : ['ACTIVE','REVIEW', 'DISABLED'],
+        default: 'REVIEW',
+        required: true
+    },
+    record: {
+        createdDate: {
+            type: Date,
+            default: Date.now,
+            required: true
+        },
+        lastModified: {
+            by: {
+                type: String,
+                required: true
+            },
+            timeStamp: {
+                type: Date,
+                default: Date.now,
+                required: true
+            }
+        },
+        createdBy: {
+            type: String,
+            default: 'System query database',
+            required: true
+        },
     }
 });
 

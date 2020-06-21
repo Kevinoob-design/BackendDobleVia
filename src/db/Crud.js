@@ -24,7 +24,6 @@ module.exports = function (Schema) {
 
     this.getNear = (LatLng, distance, limit) => {
         return new Promise((resolve, reject) => {
-
             Schema.aggregate([
                 {
                     $geoNear: {
@@ -89,16 +88,19 @@ module.exports = function (Schema) {
         });
     }
 
-    this.getUserByEmail = (email) => {
+    this.getUserByEmail = (credentials) => {
         return new Promise((resolve, reject) => {
-            Schema.findOne({ email }).exec((err, entity) => {
+            Schema.findOne({ email: credentials.email }).exec((err, entity) => {
                 if (err) {
                     reject(err);
                 }
 
                 if (!entity) {
-                    reject('Object was not found');
+                    reject('Username does not exist');
                 }
+
+
+
                 resolve(entity)
             });
         });

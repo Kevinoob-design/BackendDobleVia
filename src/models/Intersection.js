@@ -24,7 +24,30 @@ let stopSchema = new Schema({
     },
     transportType: String,
     formattedAddress: String,
-    routesID: [String]
+    routesID: [String],
+    record: {
+        createdDate: {
+            type: Date,
+            default: Date.now,
+            required: true
+        },
+        lastModified: {
+            by: {
+                type: String,
+                required: true
+            },
+            timeStamp: {
+                type: Date,
+                default: Date.now,
+                required: true
+            }
+        },
+        createdBy: {
+            type: String,
+            default: 'System',
+            required: true
+        },
+    }
 });
 
 stopSchema.plugin(uniqueValidator, {
