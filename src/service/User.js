@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const uuidv4 = require('uuid/v4');
+const _ = require('lodash');
 
 //Module class to declare a rehusable RESTfull API that serves as CRUD for Data Base especified Model.
 module.exports = function (prefix, app, db) {
@@ -8,22 +10,15 @@ module.exports = function (prefix, app, db) {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
                 if (error) reject(error);
-                res.status(200).json({
-                    ok: true,
-                    resolve: data,
-                });
+
+                req.body = data.user;
             });
         }
 
         db.getUserByEmail(req.body).then(resolve => {
-            resolve = {
-                ID: resolve.ID,
-                name: resolve.name,
-                lastName: resolve.lastName,
-                email: resolve.email,
-            }
-
+            resolve.password = req.body.password;
             jwt.sign({ user: resolve }, process.env.jwtKey, (error, token) => {
+                resolve.password = undefined;
                 res.status(200).json({
                     ok: true,
                     token: token,
@@ -70,21 +65,21 @@ module.exports = function (prefix, app, db) {
     });
 
     //POST Request to handled the creation of new data from respective DB instance for specifed MODEL.
-    app.post(`${prefix}/create-user`, (req, res) => {
+    app.post(`${prefix}/signup`, (req, res) => {
 
-        let body = req.body;
+        let body = {
+            ID: uuidv4(),
+            name: _.upperFirst(req.body.name),
+            lastName: _.upperFirst(req.body.lastName),
+            fullName: _.toUpper(`${req.body.name} ${req.body.lastName}`),
+            password: req.body.password,
+            email: _.toLower(req.body.email),
+        };
         console.log(body);
 
         db.saveNewUser(body).then(resolve => {
-
-            resolve = {
-                ID: resolve.ID,
-                name: resolve.name,
-                lastName: resolve.lastName,
-                email: resolve.email,
-            }
-
             jwt.sign({ user: resolve }, process.env.jwtKey, (error, token) => {
+                resolve.password = undefined;
                 res.status(200).json({
                     ok: true,
                     token: token,
@@ -100,8 +95,102 @@ module.exports = function (prefix, app, db) {
 
     });
 
+    app.post(`${prefix}/create-user`, (req, res) => {
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
+                if (error) reject(error);
+
+                if (data.user.role != 'ADMIN') return res.status(403).json({
+                    ok: false,
+                    msg: 'You do not have the permission for this'
+                });
+
+                let body = {
+                    ID: uuidv4(),
+                    name: req.body.name,
+                    lastName: req.body.lastName,
+                    fullName: _.toUpper(`${req.body.name} ${req.body.lastName}`),
+                    email: req.body.email,
+                    password: req.body.password,
+                    role: req.body.role,
+                    active: req.body.active,
+                    created: {
+                        createdBy: {
+                            fullName: data.user.fullName,
+                            ID: data.user.ID
+                        }
+                    },
+                    record: {
+                        lastModified: {
+                            by: {
+                                fullName: data.user.fullName,
+                                ID: data.user.ID
+                            }
+                        }
+                    }
+                }
+                console.log(body);
+
+                db.saveNewUser(body).then(resolve => {
+                    res.status(200).json({
+                        ok: true,
+                        resolve,
+                    });
+                }).catch(err => {
+                    res.status(400).json({
+                        ok: false,
+                        err
+                    });
+                });
+            });
+        }
+    });
+
+    app.put(`${prefix}/update-user`, (req, res) => {
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
+                if (error) reject(error);
+
+                if (data.user.role != 'ADMIN') return res.status(403).json({
+                    ok: false,
+                    msg: 'You do not have the permission for this'
+                });
+
+                const ID = req.body.ID;
+
+                let body = {
+                    role: req.body.role,
+                    active: req.body.active,
+                    record: {
+                        lastModified: {
+                            by: {
+                                fullName: data.user.fullName,
+                                ID: data.user.ID
+                            },
+                            timeStamp: Date.now()
+                        },
+                    }
+                }
+                console.log(body);
+
+                db.updateUserInfo(ID, body).then(resolve => {
+                    res.status(200).json({
+                        ok: true,
+                        msg: 'Update succesfull',
+                        resolve,
+                    });
+                }).catch(err => {
+                    res.status(400).json({
+                        ok: false,
+                        err
+                    });
+                });
+            });
+        }
+    });
+
     //PUT Request to handled the update of existing data from respective DB instance for specifed MODEL.
-    app.put(`${prefix}/update-user/:ID`, (req, res) => {
+    app.put(`${prefix}/update/:ID`, (req, res) => {
 
         const ID = req.ID || req.params.ID;
         const body = req.body;
@@ -109,31 +198,25 @@ module.exports = function (prefix, app, db) {
 
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) res.status(400).json({
+                if (error) return res.status(400).json({
                     ok: false,
                     err: error
                 });
 
-                if(data.user.ID != ID) res.status(400).json({
+                if (data.user.ID != ID) return res.status(400).json({
                     ok: false,
                     err: 'Oops, we could not validate your information'
                 });
 
-                if(body.password && !body.oldPassword && !body.newPassword) res.status(400).json({
+                if (body.password && !body.oldPassword && !body.newPassword) return res.status(400).json({
                     ok: false,
                     err: 'Oops, we could not validate your password'
                 });
 
                 db.updateUserInfo(ID, body).then(resolve => {
-
-                    resolve = {
-                        ID: resolve.ID,
-                        name: resolve.name,
-                        lastName: resolve.lastName,
-                        email: resolve.email,
-                    }
-        
+                    resolve.password = body.newPassword || undefined;
                     jwt.sign({ user: resolve }, process.env.jwtKey, (error, token) => {
+                        resolve.password = undefined;
                         res.status(200).json({
                             ok: true,
                             token: token,
@@ -153,7 +236,7 @@ module.exports = function (prefix, app, db) {
     });
 
     //DELETE Request to handled the deletion of existing data from respective DB instance for specifed MODEL.
-    app.delete(`${prefix}/delete-user/:ID`, (req, res) => {
+    app.delete(`${prefix}/delete/:ID`, (req, res) => {
 
         const ID = req.ID || req.params.ID;
         const body = req.body;
@@ -167,12 +250,12 @@ module.exports = function (prefix, app, db) {
 
             console.log(data);
 
-            if(data.user.ID != ID) return res.status(400).json({
+            if (data.user.ID != ID) return res.status(400).json({
                 ok: false,
                 err: 'Oops, we could not validate your information'
             });
 
-            if(!body.password) return res.status(400).json({
+            if (!body.password) return res.status(400).json({
                 ok: false,
                 err: 'Oops, we could not validate your password'
             });
@@ -180,7 +263,7 @@ module.exports = function (prefix, app, db) {
             db.delete(ID, body.password).then(resolve => {
                 res.status(200).json({
                     ok: true,
-                    resolve,
+                    msg: 'User deleted succesfully',
                 });
             }).catch(err => {
                 res.status(400).json({

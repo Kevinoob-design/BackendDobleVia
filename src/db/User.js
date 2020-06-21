@@ -1,6 +1,4 @@
 const User = require('../models/User');
-const uuidv4 = require('uuid/v4');
-const _ = require('lodash');
 
 module.exports = function () {
     this.getOne = (ID) => {
@@ -20,7 +18,7 @@ module.exports = function () {
 
     this.getUserByEmail = (credentials) => {
         return new Promise((resolve, reject) => {
-            User.findOne({ email: credentials.email }).exec(async (err, entity) => {
+            User.findOne({ email: credentials.email, active: true }).exec(async (err, entity) => {
                 if (err) {
                     return reject(err);
                 }
@@ -52,13 +50,7 @@ module.exports = function () {
     this.saveNewUser = (object) => {
         return new Promise((resolve, reject) => {
 
-            var user = new User({
-                ID: uuidv4(),
-                name: _.upperFirst(object.name),
-                lastName: _.upperFirst(object.lastName),
-                password: object.password,
-                email: _.toLower(object.email),
-            });
+            var user = new User(object);
 
             user.save((err, entity) => {
                 if (err) {
@@ -103,7 +95,7 @@ module.exports = function () {
                     });
                 });
             } else {
-                User.findOneAndUpdate({ ID }, object, { new: true, runValidators: true }, (err, entity) => {
+                User.findOneAndUpdate({ ID }, {$set: object}, { new: true, runValidators: true }, (err, entity) => {
 
                     if (err) {
                         reject(err);

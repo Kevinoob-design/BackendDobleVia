@@ -19,6 +19,10 @@ let userSchema = new Schema({
         type: String,
         required: true
     },
+    fullName: {
+        type: String,
+        required: true
+    },
     email: {
         type: String,
         required: true,
@@ -38,30 +42,59 @@ let userSchema = new Schema({
         type: Boolean,
         default: true,
         required: true
-        
+
     },
-    record: {
+    status: {
+        statusCode: {
+            type: String,
+            enum: ['ACTIVE', 'SUSPENDED', 'DELETED'],
+            default: 'ACTIVE',
+            required: true
+        },
+        statusReason: {
+            type: String,
+            default: 'Normal activation by system',
+            required: true
+        }
+    },
+    created: {
         createdDate: {
             type: Date,
             default: Date.now,
             required: true
         },
-        lastModified: {
-            by: {
+        createdBy: {
+            fullName: {
                 type: String,
                 default: 'System',
                 required: true
+            },
+            ID: {
+                type: String,
+                default: 'NaN',
+                required: true
+            },
+        },
+    },
+    record: {
+        lastModified: {
+            by: {
+                fullName: {
+                    type: String,
+                    default: 'System',
+                    required: true
+                },
+                ID: {
+                    type: String,
+                    default: 'NaN',
+                    required: true
+                },
             },
             timeStamp: {
                 type: Date,
                 default: Date.now,
                 required: true
             }
-        },
-        createdBy: {
-            type: String,
-            default: 'System',
-            required: true
         },
     }
 });
