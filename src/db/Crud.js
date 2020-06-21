@@ -1,8 +1,8 @@
 module.exports = function (Schema) {
 
-    this.get = (fields) => {
+    this.get = (condition, fields) => {
         return new Promise((resolve, reject) => {
-            Schema.find({}, fields).exec((err, docs) => {
+            Schema.find(condition, fields).exec((err, docs) => {
                 if (err) {
                     reject(err);
                 }

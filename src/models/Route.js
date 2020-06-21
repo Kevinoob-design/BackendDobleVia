@@ -4,7 +4,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 let Schema = mongoose.Schema;
 
 let routeSchema = new Schema({
-    ownerID: {
+    ownerID: {  
         type: String,
         required: [true, 'The owner ID most be provided'],
     },
@@ -63,33 +63,62 @@ let routeSchema = new Schema({
         }],
         required: [true, 'The polyline positions must be provided']
     },
-    status: {
-        type: String,
-        enum : ['ACTIVE','REVIEW', 'DISABLED'],
-        default: 'REVIEW',
+    active: {
+        type: Boolean,
+        default: true,
         required: true
     },
-    record: {
+    status: {
+        statusCode: {
+            type: String,
+            enum : ['ACTIVE','REVIEW', 'DISABLED'],
+            default: 'REVIEW',
+            required: true
+        },
+        statusReason: {
+            type: String,
+            default: 'Pending review',
+            required: true
+        }
+    },
+    created: {
         createdDate: {
             type: Date,
             default: Date.now,
             required: true
         },
+        createdBy: {
+            fullName: {
+                type: String,
+                default: 'System',
+                required: true
+            },
+            ID: {
+                type: String,
+                default: 'NaN',
+                required: true
+            },
+        },
+    },
+    record: {
         lastModified: {
             by: {
-                type: String,
-                required: true
+                fullName: {
+                    type: String,
+                    default: 'System',
+                    required: true
+                },
+                ID: {
+                    type: String,
+                    default: 'NaN',
+                    required: true
+                },
             },
             timeStamp: {
                 type: Date,
                 default: Date.now,
                 required: true
             }
-        },
-        createdBy: {
-            type: String,
-            default: 'System query database',
-            required: true
         },
     }
 });

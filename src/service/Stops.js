@@ -1,4 +1,5 @@
 const uuidv4 = require('uuid/v4');
+const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const distance = require('@turf/distance').default;
 const SearchEngine = require('../controller/search');
@@ -23,18 +24,48 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
     });
 
     app.get(`${prefix}/allRoutes`, (req, res) => {
-        // console.log(req.originalUrl);
-        routeSchema.get().then(resolve => {
-            res.status(200).json({
-                ok: true,
-                resolve,
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
+                if (error) reject(error);
+
+                console.log(data);
+
+                if (data.user.role != 'ADMIN' && data.user.role != 'PROVIDER') return res.status(403).json({
+                    ok: false,
+                    msg: 'You do not have the permission for this'
+                });
+
+                let condition;
+
+                switch (data.user.role) {
+                    case 'ADMIN': condition = {}
+                        break;
+
+                    case 'PROVIDER': condition = { ownerID: data.user.ID }
+                        break;
+
+                    default:
+                        break;
+                }
+
+                routeSchema.get(condition).then(resolve => {
+                    res.status(200).json({
+                        ok: true,
+                        resolve,
+                    });
+                }).catch(err => {
+                    res.status(400).json({
+                        ok: false,
+                        err
+                    });
+                });
             });
-        }).catch(err => {
-            res.status(400).json({
+        } else {
+            res.status(403).json({
                 ok: false,
-                err
+                msg: 'You do not have the permission for this'
             });
-        });
+        }
     });
 
     app.post(`${prefix}/routes-in-range`, (req, res) => {
@@ -222,104 +253,130 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
     //POST Request to handled the creation of new data from respective stopSchema instance for specifed MODEL.
     app.post(prefix, (req, res) => {
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
+                if (error) reject(error);
 
-        let body = req.body;
-        console.log(req.body);
+                console.log(data);
 
-        var oldStops = [];
-        var newStops = [];
-        var closeStops = [];
-        var added = 0;
+                if (data.user.role != 'ADMIN' && data.user.role != 'PROVIDER') return res.status(403).json({
+                    ok: false,
+                    msg: 'You do not have the permission for this'
+                });
 
-        getSnapedPolylines(req.body['position']).then((trayectory) => {
-            stopSchema.get().then(stops => {
-                if (stops.length > 0) {
+                let body = req.body;
+                console.log(req.body);
 
-                    for (let i = 0; i < req.body['position'].length; i++) {
-                        const position = req.body['position'][i];
+                var oldStops = [];
+                var newStops = [];
+                var closeStops = [];
+                var added = 0;
 
-                        var isOldStop = '';
-                        var isCloseStop = '';
+                getSnapedPolylines(req.body['position']).then((trayectory) => {
+                    stopSchema.get().then(stops => {
+                        if (stops.length > 0) {
 
-                        for (let j = 0; j < stops.length; j++) {
-                            const stop = stops[j];
+                            for (let i = 0; i < req.body['position'].length; i++) {
+                                const position = req.body['position'][i];
 
-                            var dist = distance(position['LatLng'], stop.location.coordinates, {
-                                units: 'kilometers'
-                            });
+                                var isOldStop = '';
+                                var isCloseStop = '';
 
-                            if (dist <= 0.50) {
-                                console.log(`Very close stop: ${req.body.ID}`);
-                                isOldStop = stop['ID'];
-                                oldStops.push(stop);
+                                for (let j = 0; j < stops.length; j++) {
+                                    const stop = stops[j];
+
+                                    var dist = distance(position['LatLng'], stop.location.coordinates, {
+                                        units: 'kilometers'
+                                    });
+
+                                    if (dist <= 0.50) {
+                                        console.log(`Very close stop: ${req.body.ID}`);
+                                        isOldStop = stop['ID'];
+                                        oldStops.push(stop);
+                                    }
+
+                                    if (dist <= 0.300) {
+                                        console.log(`Close enough: ${req.body.ID}`);
+                                        isCloseStop = stop['ID'];
+                                        closeStops.push(stop);
+                                    }
+                                }
+
+                                if (isOldStop) {
+                                    stopSchema.updateArray(isOldStop, { routesID: req.body.ID });
+
+                                    if (req.body.aditionalInfo.transportType == 'metro' || req.body.aditionalInfo.transportType == 'teleferico') {
+                                        stopSchema.save({
+                                            ID: uuidv4(),
+                                            location: { type: 'Point', coordinates: position['LatLng'] },
+                                            formattedAddress: position['streetName'],
+                                            transportType: req.body.aditionalInfo.transportType,
+                                            routesID: req.body.ID
+                                        });
+                                        added++;
+                                        newStops.push(stops);
+                                    }
+                                }
+                                else {
+                                    const ID = uuidv4();
+                                    stopSchema.save({
+                                        ID: ID,
+                                        location: { type: 'Point', coordinates: position['LatLng'] },
+                                        formattedAddress: position['streetName'],
+                                        transportType: req.body.aditionalInfo.transportType,
+                                        routesID: req.body.ID
+                                    });
+                                    added++;
+                                    newStops.push(stops);
+
+                                    if (isCloseStop) {
+                                        stopSchema.updateArray(isCloseStop, { routesID: req.body.ID });
+                                        stopSchema.updateArray(ID, { routesID: isCloseStop });
+                                    }
+                                }
                             }
+                        } else {
+                            for (let i = 0; i < req.body['position'].length; i++) {
+                                const position = req.body['position'][i];
 
-                            if (dist <= 0.300) {
-                                console.log(`Close enough: ${req.body.ID}`);
-                                isCloseStop = stop['ID'];
-                                closeStops.push(stop);
-                            }
-                        }
-
-                        if (isOldStop) {
-                            stopSchema.updateArray(isOldStop, { routesID: req.body.ID });
-
-                            if (req.body.aditionalInfo.transportType == 'metro' || req.body.aditionalInfo.transportType == 'teleferico') {
-                                stopSchema.save({
+                                newStops.push({
                                     ID: uuidv4(),
                                     location: { type: 'Point', coordinates: position['LatLng'] },
                                     formattedAddress: position['streetName'],
-                                    transportType: req.body.aditionalInfo.transportType,
                                     routesID: req.body.ID
-                                });
-                                added++;
-                                newStops.push(stops);
+                                })
+
                             }
+                            stopSchema.saveMany(newStops);
                         }
-                        else {
-                            const ID = uuidv4();
-                            stopSchema.save({
-                                ID: ID,
-                                location: { type: 'Point', coordinates: position['LatLng'] },
-                                formattedAddress: position['streetName'],
-                                transportType: req.body.aditionalInfo.transportType,
-                                routesID: req.body.ID
+
+                        var obj = req.body;
+                        obj.ownerID = data.user.ID;
+                        obj.trayectory = trayectory;
+
+                        routeSchema.save(obj).then(resolve => {
+                            res.status(200).json({
+                                ok: true,
+                                resolve,
+                                oldStops,
+                                newStops,
+                                added,
+                                msg: 'Update succesfull',
                             });
-                            added++;
-                            newStops.push(stops);
 
-                            if (isCloseStop) {
-                                stopSchema.updateArray(isCloseStop, { routesID: req.body.ID });
-                                stopSchema.updateArray(ID, { routesID: isCloseStop });
-                            }
-                        }
-                    }
-                } else {
-                    for (let i = 0; i < req.body['position'].length; i++) {
-                        const position = req.body['position'][i];
-
-                        newStops.push({
-                            ID: uuidv4(),
-                            location: { type: 'Point', coordinates: position['LatLng'] },
-                            formattedAddress: position['streetName'],
-                            routesID: req.body.ID
+                        }).catch(err => {
+                            console.log(err);
+                            res.status(400).json({
+                                ok: false,
+                                err
+                            });
                         })
-
-                    }
-                    stopSchema.saveMany(newStops);
-                }
-
-                var obj = req.body;
-                obj.trayectory = trayectory;
-
-                routeSchema.save(obj).then(resolve => {
-                    res.status(200).json({
-                        ok: true,
-                        resolve,
-                        oldStops,
-                        newStops,
-                        added,
-                        msg: 'Update succesfull',
+                    }).catch(err => {
+                        console.log(err);
+                        res.status(400).json({
+                            ok: false,
+                            err
+                        });
                     });
 
                 }).catch(err => {
@@ -329,21 +386,15 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         err
                     });
                 })
-            }).catch(err => {
-                console.log(err);
-                res.status(400).json({
-                    ok: false,
-                    err
-                });
-            });
 
-        }).catch(err => {
-            console.log(err);
-            res.status(400).json({
-                ok: false,
-                err
+
             });
-        })
+        } else {
+            res.status(403).json({
+                ok: false,
+                msg: 'You do not have the permission for this'
+            });
+        }
     });
 
     function getSnapedPolylines(positions) {
@@ -390,22 +441,55 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
     //PUT Request to handled the update of existing data from respective stopSchema instance for specifed MODEL.
     app.put(`${prefix}/:ID`, (req, res) => {
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
+                if (error) reject(error);
 
-        const ID = req.ID || req.params.ID;
-        const body = req.body;
-        console.log(body);
+                console.log(data);
 
-        routeSchema.update(ID, body).then(resolve => {
-            res.status(200).json({
-                ok: true,
-                resolve: 'Update succesfull',
+                if (data.user.role != 'ADMIN' && data.user.role != 'PROVIDER') return res.status(403).json({
+                    ok: false,
+                    msg: 'You do not have the permission for this'
+                });
+
+                const ID = req.ID || req.params.ID;
+                const body = req.body;
+                console.log(body);
+
+                routeSchema.get({ ID, ownerID: data.user.ID }).then(resolveValidation => {
+
+                    console.log(resolveValidation);
+
+                    if (resolveValidation[0].ID != ID && resolveValidation[0].ownerID != data.user.ID) return res.status(403).json({
+                        ok: false,
+                        msg: 'This route does not belongs to you'
+                    });
+
+                    routeSchema.update(ID, body).then(resolve => {
+                        res.status(200).json({
+                            ok: true,
+                            resolve: 'Update succesfull',
+                        });
+                    }).catch(err => {
+                        res.status(400).json({
+                            ok: false,
+                            err
+                        });
+                    });
+
+                }).catch(err => {
+                    res.status(400).json({
+                        ok: false,
+                        err
+                    });
+                });
             });
-        }).catch(err => {
-            res.status(400).json({
+        } else {
+            res.status(403).json({
                 ok: false,
-                err
+                msg: 'You do not have the permission for this'
             });
-        });
+        }
     });
 
     //This PUT request is to update existing Array on a Existing object in the model.
@@ -430,20 +514,53 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
     //DELETE Request to handled the deletion of existing data from respective stopSchema instance for specifed MODEL.
     app.delete(`${prefix}/:ID`, (req, res) => {
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
+                if (error) reject(error);
 
-        const ID = req.ID || req.params.ID;
-        console.log(req.body);
+                console.log(data);
 
-        routeSchema.delete(ID).then(resolve => {
-            res.status(200).json({
-                ok: true,
-                resolve,
+                if (data.user.role != 'ADMIN' && data.user.role != 'PROVIDER') return res.status(403).json({
+                    ok: false,
+                    msg: 'You do not have the permission for this'
+                });
+
+                const ID = req.ID || req.params.ID;
+                console.log(body);
+
+                routeSchema.get({ ID, ownerID: data.user.ID }).then(resolveValidation => {
+
+                    console.log(resolveValidation);
+
+                    if (resolveValidation[0].ID != ID && resolveValidation[0].ownerID != data.user.ID) return res.status(403).json({
+                        ok: false,
+                        msg: 'This route does not belongs to you'
+                    });
+
+                    routeSchema.delete(ID).then(resolve => {
+                        res.status(200).json({
+                            ok: true,
+                            resolve,
+                        });
+                    }).catch(err => {
+                        res.status(400).json({
+                            ok: false,
+                            err
+                        });
+                    });
+
+                }).catch(err => {
+                    res.status(400).json({
+                        ok: false,
+                        err
+                    });
+                });
             });
-        }).catch(err => {
-            res.status(400).json({
+        } else {
+            res.status(403).json({
                 ok: false,
-                err
+                msg: 'You do not have the permission for this'
             });
-        });
+        }
     });
 }
