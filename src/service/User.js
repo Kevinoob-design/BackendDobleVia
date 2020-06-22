@@ -15,6 +15,8 @@ module.exports = function (prefix, app, db) {
             });
         }
 
+        console.log(req.body);
+
         db.getUserByEmail(req.body).then(resolve => {
             resolve.password = req.body.password;
             jwt.sign({ user: resolve }, process.env.jwtKey, (error, token) => {
