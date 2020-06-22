@@ -36,18 +36,37 @@ module.exports = function (prefix, app, db) {
     });
 
     app.get(`${prefix}/all-users`, (req, res) => {
-        // console.log(req.originalUrl);
-        db.get({ password: 0 }).then(resolve => {
-            res.status(200).json({
-                ok: true,
-                resolve,
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
+                if (error) reject(error);
+
+                console.log(data);
+
+                if (data.user.role != 'ADMIN') {
+                    res.status(403).json({
+                        ok: false,
+                        msg: 'You do not have the permission for this'
+                    });
+                } else {
+                    db.getAllUsers({ password: 0 }).then(resolve => {
+                        res.status(200).json({
+                            ok: true,
+                            resolve,
+                        });
+                    }).catch(err => {
+                        res.status(400).json({
+                            ok: false,
+                            err
+                        });
+                    });
+                }
             });
-        }).catch(err => {
-            res.status(400).json({
+        } else {
+            res.status(403).json({
                 ok: false,
-                err
+                msg: 'You do not have the permission for this'
             });
-        });
+        }
     });
 
     //GET Request to handled to get one by ID from respective DB instance data for specifed MODEL.
