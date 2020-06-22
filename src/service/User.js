@@ -6,7 +6,7 @@ const _ = require('lodash');
 module.exports = function (prefix, app, db) {
 
     //GET Request to handled to get respective all data from DB instance data for specifed MODEL.
-    app.get(`${prefix}/signin`, (req, res) => {
+    app.post(`${prefix}/signin`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
                 if (error) reject(error);
