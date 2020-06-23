@@ -26,7 +26,10 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
     app.get(`${prefix}/allRoutes`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) reject(error);
+                if (error) return res.status(400).json({
+                    ok: false,
+                    error
+                });
 
                 console.log(data);
 
@@ -255,7 +258,10 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
     app.post(prefix, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) reject(error);
+                if (error) return res.status(400).json({
+                    ok: false,
+                    error
+                });
 
                 console.log(data);
 
@@ -443,7 +449,10 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
     app.put(`${prefix}/:ID`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) reject(error);
+                if (error) return res.status(400).json({
+                    ok: false,
+                    error
+                });
 
                 console.log(data);
 
@@ -516,7 +525,10 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
     app.delete(`${prefix}/:ID`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) reject(error);
+                if (error) return res.status(400).json({
+                    ok: false,
+                    error
+                });
 
                 console.log(data);
 
