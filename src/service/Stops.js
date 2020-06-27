@@ -90,9 +90,18 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
     app.post(`${prefix}/nearest`, (req, res) => {
         console.log(req.body);
         stopSchema.getNear(req.body.coordinates, parseInt(req.body.distance)).then(resolve => {
-            res.status(200).json({
-                ok: true,
-                resolve,
+            const ids = resolve.map(stop => stop.routesID.toString());
+            routeSchema.getRange(ids).then(nearestRoutes => {
+                res.status(200).json({
+                    ok: true,
+                    resolve,
+                    nearestRoutes
+                });
+            }).catch(err => {
+                res.status(400).json({
+                    ok: false,
+                    err
+                });
             });
         }).catch(err => {
             res.status(400).json({
