@@ -159,8 +159,8 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         });
                     });
                 } else {
-                    routeSchema.get({ ID: 1, _id: 0 }).then(routesID => {
-                        stopSchema.getStopCollissions({ ID: 1, _id: 0 }).then(async collissions => {
+                    routeSchema.get({}, { ID: 1, _id: 0 }).then(routesID => {
+                        stopSchema.getStopCollissions().then(async collissions => {
 
                             routesID = routesID.map(routes => routes.ID);
                             collissions = collissions.map(collission => collission.routesID);
