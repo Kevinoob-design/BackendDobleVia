@@ -26,23 +26,7 @@ let feedbackSchema = new Schema({
             type: Date,
             default: Date.now,
             required: true
-        },
-        lastModified: {
-            by: {
-                type: String,
-                required: true
-            },
-            timeStamp: {
-                type: Date,
-                default: Date.now,
-                required: true
-            }
-        },
-        createdBy: {
-            type: String,
-            default: 'System',
-            required: true
-        },
+        }
     }
 });
 
