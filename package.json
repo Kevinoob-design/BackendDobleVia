@@ -8,7 +8,7 @@
         "heroku": "heroku logs --tail",
         "push": "git push && git push heroku master",
         "update": "git push && git push heroku master && heroku logs --tail",
-        "git": "git status && git add . && git status && git commit -m $msg && npm run update"
+        "git": "git pull && git status && git add . && git status && git commit -m $msg && npm run update"
     },
     "author": "",
     "license": "ISC",
