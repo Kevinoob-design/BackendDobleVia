@@ -549,7 +549,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                 const ID = req.ID || req.params.ID;
                 console.log(body);
 
-                routeSchema.get({ ID, ownerID: data.user.ID }).then(resolveValidation => {
+                routeSchema.get({ ID, ownerID: data.user.ID }, {}).then(resolveValidation => {
 
                     console.log(resolveValidation);
 
