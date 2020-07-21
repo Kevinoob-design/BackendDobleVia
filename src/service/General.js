@@ -1,10 +1,10 @@
 //Module class to declare a rehusable RESTfull API that serves as CRUD for Data Base especified Model.
 module.exports = function (prefix, app, db) {
-
-    //GET Request to handled to get respective all data from DB instance data for specifed MODEL.
-    app.get(prefix, (req, res) => {
-        // console.log(req.originalUrl);
-        db.get().then(resolve => {
+    
+    app.get(`${prefix}/count`, (req, res) => {
+        let filter = req.body || {};
+        console.log(filter);
+        routeSchema.count(filter).then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve,
@@ -17,9 +17,10 @@ module.exports = function (prefix, app, db) {
         });
     });
 
-    app.get(`${prefix}/all-users`, (req, res) => {
+    //GET Request to handled to get respective all data from DB instance data for specifed MODEL.
+    app.get(prefix, (req, res) => {
         // console.log(req.originalUrl);
-        db.get({password: 0}).then(resolve => {
+        db.get().then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve,
@@ -128,15 +129,3 @@ module.exports = function (prefix, app, db) {
         });
     });
 }
-
-// const server = app.listen(process.env.PORT, () => {
-//     console.log("Listening on port: ",
-//         process.env.PORT);
-// });
-
-// const io = require('socket.io')(server);
-
-// io.on('connection', (socket) => {
-//     console.log('The socket ID of the device: ' + socket.id);
-//     console.log('The client is: ' + socket.client.request);
-// });

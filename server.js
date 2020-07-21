@@ -37,6 +37,7 @@ const Crud = require('./src/db/Crud');
 
 // DB definition
 const UserDB = require('./src/db/User');
+const RouteDB = require('./src/db/Route');
 
 // Models definition
 const Route = require('./src/models/Route');
@@ -61,8 +62,8 @@ app.use('/api', keyMiddleWare.verifyKey);
 
 // Routes definition with Models
 require('./src/service/General')('/api/route', app, new Crud(Route));
-require('./src/service/Stops')('/api/newroute', app, new Crud(Intersection), new Crud(Route));
-require('./src/service/User')('/api/user', app, new UserDB());
+require('./src/service/Stops')('/api/newroute', app, new RouteDB(Intersection), new RouteDB(Route));
+require('./src/service/User')('/api/user', app, new UserDB(User));
 require('./src/service/General')('/api/survey', app, new Crud(Survey));
 require('./src/service/General')('/api/contact', app, new Crud(Contact));
 require('./src/service/General')('/api/feedback', app, new Crud(Feedback));

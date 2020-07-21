@@ -1,24 +1,12 @@
-const User = require('../models/User');
+const Crud = require('./Crud');
 
-module.exports = function () {
-    this.getOne = (ID) => {
-        return new Promise((resolve, reject) => {
-            User.findOne({ ID }).exec((err, entity) => {
-                if (err) {
-                    reject(err);
-                }
+module.exports = function (Schema) {
 
-                if (!entity) {
-                    reject('ID was not found');
-                }
-                resolve(entity)
-            });
-        });
-    }
+    Crud.apply(this, arguments);
 
     this.getUserByEmail = (credentials) => {
         return new Promise((resolve, reject) => {
-            User.findOne({ email: credentials.email, active: true }).exec(async (err, entity) => {
+            Schema.findOne({ email: credentials.email, active: true }).exec(async (err, entity) => {
                 if (err) {
                     return reject(err);
                 }
@@ -27,7 +15,7 @@ module.exports = function () {
                     return reject('Username does not exist');
                 }
 
-                const user = new User(entity);
+                const user = new Schema(entity);
 
                 if (await user.verifyPassword(credentials.password)) return resolve(entity);
 
@@ -36,37 +24,11 @@ module.exports = function () {
         });
     }
 
-    this.getAllUsers = (fields) => {
-        return new Promise((resolve, reject) => {
-            User.find({}, fields).exec((err, docs) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve(docs);
-            });
-        });
-    }
-
-    this.saveNewUser = (object) => {
-        return new Promise((resolve, reject) => {
-
-            var user = new User(object);
-
-            user.save((err, entity) => {
-                if (err) {
-                    reject(err);
-                }
-
-                resolve(entity);
-            });
-        });
-    }
-
-    this.updateUserInfo = (ID, object) => {
+    this.update = (ID, object) => {
         return new Promise((resolve, reject) => {
 
             if (object.oldPassword && object.newPassword) {
-                User.findOne({ ID }).exec(async (err, entity) => {
+                Schema.findOne({ ID }).exec(async (err, entity) => {
                     if (err) {
                         return reject(err);
                     }
@@ -75,7 +37,7 @@ module.exports = function () {
                        return reject('Username does not exist');
                     }
 
-                    const user = new User(entity);
+                    const user = new Schema(entity);
 
                     if (!await user.verifyPassword(object.oldPassword)) return reject('Username or password incorrect');
 
@@ -95,7 +57,7 @@ module.exports = function () {
                     });
                 });
             } else {
-                User.findOneAndUpdate({ ID }, {$set: object}, { new: true, runValidators: true }, (err, entity) => {
+                Schema.findOneAndUpdate({ ID }, {$set: object}, { new: true, runValidators: true }, (err, entity) => {
 
                     if (err) {
                         reject(err);
@@ -114,7 +76,7 @@ module.exports = function () {
     this.delete = (ID, password) => {
         return new Promise((resolve, reject) => {
 
-            User.findOne({ ID }).exec(async (err, entity) => {
+            Schema.findOne({ ID }).exec(async (err, entity) => {
                 if (err) {
                     return reject(err);
                 }
@@ -123,7 +85,7 @@ module.exports = function () {
                    return reject('Username does not exist');
                 }
 
-                const user = new User(entity);
+                const user = new Schema(entity);
 
                 if (!await user.verifyPassword(password)) return reject('Password incorrect');
 
@@ -142,4 +104,48 @@ module.exports = function () {
             });
         });
     }
+
+    // this.getAllUsers = (fields) => {
+    //     return new Promise((resolve, reject) => {
+    //         Schema.find({}, fields).exec((err, docs) => {
+    //             if (err) {
+    //                 reject(err);
+    //             }
+    //             resolve(docs);
+    //         });
+    //     });
+    // }
+
+    // this.getOne = (ID) => {
+    //     return new Promise((resolve, reject) => {
+    //         Schema.findOne({ ID }).exec((err, entity) => {
+    //             if (err) {
+    //                 reject(err);
+    //             }
+
+    //             if (!entity) {
+    //                 reject('ID was not found');
+    //             }
+    //             resolve(entity)
+    //         });
+    //     });
+    // }
+
+    // this.saveNewUser = (object) => {
+    //     return new Promise((resolve, reject) => {
+
+    //         var user = new User(object);
+
+    //         user.save((err, entity) => {
+    //             if (err) {
+    //                 reject(err);
+    //             }
+
+    //             resolve(entity);
+    //         });
+    //     });
+    // }
+
+    this.prototype = Crud.prototype;
+    this.prototype.constructor = this;
 }

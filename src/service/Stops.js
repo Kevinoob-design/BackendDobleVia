@@ -7,6 +7,42 @@ const SearchEngine = require('../controller/search');
 //Module class to declare a rehusable RESTfull API that serves as CRUD for Data Base especified Model.
 module.exports = function (prefix, app, stopSchema, routeSchema) {
 
+    app.get(`${prefix}/count`, (req, res) => {
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
+                if (error) reject(error);
+
+                console.log(data);
+
+                if (data.user.role != 'ADMIN') {
+                    res.status(403).json({
+                        ok: false,
+                        msg: 'You do not have the permission for this'
+                    });
+                } else {
+                    let filter = req.body || {};
+                    console.log(filter);
+                    routeSchema.count(filter).then(resolve => {
+                        res.status(200).json({
+                            ok: true,
+                            resolve,
+                        });
+                    }).catch(err => {
+                        res.status(400).json({
+                            ok: false,
+                            err
+                        });
+                    });
+                }
+            });
+        } else {
+            res.status(403).json({
+                ok: false,
+                msg: 'You do not have the permission for this'
+            });
+        }
+    });
+
     //GET Request to handled to get respective all data from stopSchema instance data for specifed MODEL.
     app.get(`${prefix}/allStops`, (req, res) => {
         // console.log(req.originalUrl);
@@ -547,7 +583,6 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                 });
 
                 const ID = req.ID || req.params.ID;
-                console.log(body);
 
                 routeSchema.get({ ID, ownerID: data.user.ID }, {}).then(resolveValidation => {
 
@@ -558,11 +593,22 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         msg: 'This route does not belongs to you'
                     });
 
-                    routeSchema.delete(ID).then(resolve => {
-                        res.status(200).json({
-                            ok: true,
-                            resolve,
+                    routeSchema.delete(ID).then(routeDeleted => {
+                        stopSchema.updateMany({ routesID: ID }, { $pull: { routesID: ID } }).then(stopDeleted => {
+                            res.status(200).json({
+                                ok: true,
+                                resolve:{
+                                    routeDeleted,
+                                    stopDeleted
+                                },
+                            });
+                        }).catch(err => {
+                            res.status(400).json({
+                                ok: false,
+                                err
+                            });
                         });
+
                     }).catch(err => {
                         res.status(400).json({
                             ok: false,
@@ -573,7 +619,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                 }).catch(err => {
                     res.status(400).json({
                         ok: false,
-                        err
+                        err: 'This route does not belongs to you'
                     });
                 });
             });

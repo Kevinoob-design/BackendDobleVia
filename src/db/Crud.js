@@ -1,3 +1,5 @@
+const { reject } = require("lodash");
+
 module.exports = function (Schema) {
 
     this.get = (condition, fields) => {
@@ -13,58 +15,7 @@ module.exports = function (Schema) {
 
     this.getRange = (range, fields) => {
         return new Promise((resolve, reject) => {
-            Schema.find({ID: {$in: range}}, fields).exec((err, docs) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve(docs);
-            });
-        });
-    }
-
-    this.getNear = (LatLng, distance, limit) => {
-        return new Promise((resolve, reject) => {
-            Schema.aggregate([
-                {
-                    $geoNear: {
-                        near: { type: "Point", coordinates: LatLng },
-                        distanceField: "dist.calculated",
-                        maxDistance: distance,
-                        includeLocs: "dist.location",
-                        spherical: true
-                    }
-                },
-                { $limit: limit || 20 }
-            ]).then(res => {
-                resolve(res);
-            }).catch(err => {
-                console.log(err);
-                reject(err);
-            });
-        });
-    }
-
-    this.getStopCollissions = () => {
-        return new Promise((resolve, reject) => {
-
-            Schema.find({
-                $nor: [
-                    { routesID: { $exists: false } },
-                    { routesID: { $size: 0 } },
-                    { routesID: { $size: 1 } }
-                ]
-            }, { routesID: 1, _id: 0 }).exec((err, docs) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve(docs);
-            });
-        });
-    }
-
-    this.getStopsFromRoute = (ID) => {
-        return new Promise((resolve, reject) => {
-            Schema.find({ routesID: { $all: [ID] } }).exec((err, docs) => {
+            Schema.find({ ID: { $in: range } }, fields).exec((err, docs) => {
                 if (err) {
                     reject(err);
                 }
@@ -83,24 +34,6 @@ module.exports = function (Schema) {
                 if (!entity) {
                     reject('ID was not found');
                 }
-                resolve(entity)
-            });
-        });
-    }
-
-    this.getUserByEmail = (credentials) => {
-        return new Promise((resolve, reject) => {
-            Schema.findOne({ email: credentials.email }).exec((err, entity) => {
-                if (err) {
-                    reject(err);
-                }
-
-                if (!entity) {
-                    reject('Username does not exist');
-                }
-
-
-
                 resolve(entity)
             });
         });
@@ -156,6 +89,23 @@ module.exports = function (Schema) {
         });
     }
 
+    this.updateMany = (condition, object) => {
+        return new Promise((resolve, reject) => {
+            Schema.updateMany(condition, object, { new: true, runValidators: true }, (err, entity) => {
+
+                if (err) {
+                    reject(err);
+                }
+
+                if (!entity) {
+                    reject('ID was not found');
+                }
+
+                resolve(entity);
+            });
+        });
+    }
+
     this.updateArray = (ID, object) => {
         return new Promise((resolve, reject) => {
             Schema.findOneAndUpdate({ ID }, { $addToSet: object }, { new: true, runValidators: true }, (err, entity) => {
@@ -189,6 +139,17 @@ module.exports = function (Schema) {
                 // io.emit("deleted", deletedEntity);
 
                 resolve(deletedEntity);
+            });
+        });
+    }
+
+    this.count = (filter) => {
+        return new Promise((resolve, reject) => {
+            Schema.countDocuments(filter).exec((err, count) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve(count);
             });
         });
     }
