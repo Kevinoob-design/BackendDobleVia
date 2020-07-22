@@ -4,7 +4,7 @@ module.exports = function (prefix, app, db) {
     app.get(`${prefix}/count`, (req, res) => {
         let filter = req.body || {};
         console.log(filter);
-        routeSchema.count(filter).then(resolve => {
+        db.count(filter).then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve,
