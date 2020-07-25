@@ -323,55 +323,41 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                 var closeStops = [];
                 var added = 0;
 
-                getSnapedPolylines(req.body['position']).then((trayectory) => {
-                    stopSchema.get().then(stops => {
-                        if (stops.length > 0) {
+                stopSchema.get().then(stops => {
+                    if (stops.length > 0) {
 
-                            for (let i = 0; i < req.body['position'].length; i++) {
-                                const position = req.body['position'][i];
+                        for (let i = 0; i < req.body['position'].length; i++) {
+                            const position = req.body['position'][i];
 
-                                var isOldStop = '';
-                                var isCloseStop = '';
+                            var isOldStop = '';
+                            var isCloseStop = '';
 
-                                for (let j = 0; j < stops.length; j++) {
-                                    const stop = stops[j];
+                            for (let j = 0; j < stops.length; j++) {
+                                const stop = stops[j];
 
-                                    var dist = distance(position['LatLng'], stop.location.coordinates, {
-                                        units: 'kilometers'
-                                    });
+                                var dist = distance(position['LatLng'], stop.location.coordinates, {
+                                    units: 'kilometers'
+                                });
 
-                                    if (dist <= 0.50) {
-                                        console.log(`Very close stop: ${req.body.ID}`);
-                                        isOldStop = stop['ID'];
-                                        oldStops.push(stop);
-                                    }
-
-                                    if (dist <= 0.300) {
-                                        console.log(`Close enough: ${req.body.ID}`);
-                                        isCloseStop = stop['ID'];
-                                        closeStops.push(stop);
-                                    }
+                                if (dist <= 0.50) {
+                                    console.log(`Very close stop: ${req.body.ID}`);
+                                    isOldStop = stop['ID'];
+                                    oldStops.push(stop);
                                 }
 
-                                if (isOldStop) {
-                                    stopSchema.updateArray(isOldStop, { routesID: req.body.ID });
-
-                                    if (req.body.aditionalInfo.transportType == 'metro' || req.body.aditionalInfo.transportType == 'teleferico') {
-                                        stopSchema.save({
-                                            ID: uuidv4(),
-                                            location: { type: 'Point', coordinates: position['LatLng'] },
-                                            formattedAddress: position['streetName'],
-                                            transportType: req.body.aditionalInfo.transportType,
-                                            routesID: req.body.ID
-                                        });
-                                        added++;
-                                        newStops.push(stops);
-                                    }
+                                if (dist <= 0.300) {
+                                    console.log(`Close enough: ${req.body.ID}`);
+                                    isCloseStop = stop['ID'];
+                                    closeStops.push(stop);
                                 }
-                                else {
-                                    const ID = uuidv4();
+                            }
+
+                            if (isOldStop) {
+                                stopSchema.updateArray(isOldStop, { routesID: req.body.ID });
+
+                                if (req.body.aditionalInfo.transportType == 'metro' || req.body.aditionalInfo.transportType == 'teleferico') {
                                     stopSchema.save({
-                                        ID: ID,
+                                        ID: uuidv4(),
                                         location: { type: 'Point', coordinates: position['LatLng'] },
                                         formattedAddress: position['streetName'],
                                         transportType: req.body.aditionalInfo.transportType,
@@ -379,32 +365,73 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                                     });
                                     added++;
                                     newStops.push(stops);
-
-                                    if (isCloseStop) {
-                                        stopSchema.updateArray(isCloseStop, { routesID: req.body.ID });
-                                        stopSchema.updateArray(ID, { routesID: isCloseStop });
-                                    }
                                 }
                             }
-                        } else {
-                            for (let i = 0; i < req.body['position'].length; i++) {
-                                const position = req.body['position'][i];
-
-                                newStops.push({
-                                    ID: uuidv4(),
+                            else {
+                                const ID = uuidv4();
+                                stopSchema.save({
+                                    ID: ID,
                                     location: { type: 'Point', coordinates: position['LatLng'] },
                                     formattedAddress: position['streetName'],
+                                    transportType: req.body.aditionalInfo.transportType,
                                     routesID: req.body.ID
-                                })
+                                });
+                                added++;
+                                newStops.push(stops);
 
+                                if (isCloseStop) {
+                                    stopSchema.updateArray(isCloseStop, { routesID: req.body.ID });
+                                    stopSchema.updateArray(ID, { routesID: isCloseStop });
+                                }
                             }
-                            stopSchema.saveMany(newStops);
                         }
+                    } else {
+                        for (let i = 0; i < req.body['position'].length; i++) {
+                            const position = req.body['position'][i];
 
-                        var obj = req.body;
-                        obj.ownerID = data.user.ID;
-                        obj.trayectory = trayectory;
+                            newStops.push({
+                                ID: uuidv4(),
+                                location: { type: 'Point', coordinates: position['LatLng'] },
+                                formattedAddress: position['streetName'],
+                                routesID: req.body.ID
+                            })
 
+                        }
+                        stopSchema.saveMany(newStops);
+                    }
+
+                    var obj = req.body;
+                    obj.ownerID = data.user.ID;
+
+                    if (!obj.trayectory || !obj.trayectory.length || !obj.trayectory.length == 0) {
+                        getSnapedPolylines(req.body['position']).then((trayectory) => {
+                            obj.trayectory = trayectory;
+                            routeSchema.save(obj).then(resolve => {
+                                res.status(200).json({
+                                    ok: true,
+                                    resolve,
+                                    oldStops,
+                                    newStops,
+                                    added,
+                                    msg: 'Update succesfull',
+                                });
+
+                            }).catch(err => {
+                                console.log(err);
+                                res.status(400).json({
+                                    ok: false,
+                                    err
+                                });
+                            });
+
+                        }).catch(err => {
+                            console.log(err);
+                            res.status(400).json({
+                                ok: false,
+                                err
+                            });
+                        });
+                    } else {
                         routeSchema.save(obj).then(resolve => {
                             res.status(200).json({
                                 ok: true,
@@ -421,15 +448,8 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                                 ok: false,
                                 err
                             });
-                        })
-                    }).catch(err => {
-                        console.log(err);
-                        res.status(400).json({
-                            ok: false,
-                            err
                         });
-                    });
-
+                    }
                 }).catch(err => {
                     console.log(err);
                     res.status(400).json({
@@ -487,6 +507,22 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
         });
     }
 
+    app.post(`${prefix}/getSnaped`, (req, res) => {
+        if (!req.body || !req.body.length || !req.body.length <= 10) return res.status(400).json({ msg: 'Falta informacion de trayectoria' });
+        getSnapedPolylines(req.body).then(trayectory => {
+            res.status(200).json({
+                ok: true,
+                msg: 'Trayectoria se calculo correctamente',
+                trayectory
+            }).catch(err => {
+                res.status(400).json({
+                    ok: false,
+                    msg: 'Algo salio mal, verifique que las coordenadas estan cerca o pertenecen a una calle o misma via',
+                    error: err
+                })
+            })
+        })
+    });
 
     //PUT Request to handled the update of existing data from respective stopSchema instance for specifed MODEL.
     app.put(`${prefix}/:ID`, (req, res) => {
@@ -516,8 +552,30 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         ok: false,
                         msg: 'This route does not belongs to you'
                     });
-                    getSnapedPolylines(body['position']).then(trayectory => {
-                        body.trayectory = trayectory;
+
+                    if (body.redoTrayectory == true) {
+                        getSnapedPolylines(body['position']).then(trayectory => {
+                            body.trayectory = trayectory;
+                            routeSchema.update(ID, body).then(resolve => {
+                                res.status(200).json({
+                                    ok: true,
+                                    msg: 'Update succesfull',
+                                    resolve
+                                });
+                            }).catch(err => {
+                                res.status(400).json({
+                                    ok: false,
+                                    err
+                                });
+                            });
+                        }).catch(err => {
+                            console.log(err);
+                            res.status(400).json({
+                                ok: false,
+                                err
+                            });
+                        });
+                    } else {
                         routeSchema.update(ID, body).then(resolve => {
                             res.status(200).json({
                                 ok: true,
@@ -530,13 +588,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                                 err
                             });
                         });
-                    }).catch(err => {
-                        console.log(err);
-                        res.status(400).json({
-                            ok: false,
-                            err
-                        });
-                    });
+                    }
                 }).catch(err => {
                     res.status(400).json({
                         ok: false,
