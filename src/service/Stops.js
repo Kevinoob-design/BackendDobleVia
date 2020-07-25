@@ -521,8 +521,8 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         routeSchema.update(ID, body).then(resolve => {
                             res.status(200).json({
                                 ok: true,
-                                resolve,
-                                msg: 'Update succesfull'
+                                msg: 'Update succesfull',
+                                resolve
                             });
                         }).catch(err => {
                             res.status(400).json({
