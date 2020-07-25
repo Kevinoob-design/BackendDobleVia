@@ -436,9 +436,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         ok: false,
                         err
                     });
-                })
-
-
+                });
             });
         } else {
             res.status(403).json({
@@ -518,19 +516,27 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         ok: false,
                         msg: 'This route does not belongs to you'
                     });
-
-                    routeSchema.update(ID, body).then(resolve => {
-                        res.status(200).json({
-                            ok: true,
-                            resolve: 'Update succesfull',
+                    getSnapedPolylines(body['position']).then(trayectory => {
+                        body.trayectory = trayectory;
+                        routeSchema.update(ID, body).then(resolve => {
+                            res.status(200).json({
+                                ok: true,
+                                resolve,
+                                msg: 'Update succesfull'
+                            });
+                        }).catch(err => {
+                            res.status(400).json({
+                                ok: false,
+                                err
+                            });
                         });
                     }).catch(err => {
+                        console.log(err);
                         res.status(400).json({
                             ok: false,
                             err
                         });
                     });
-
                 }).catch(err => {
                     res.status(400).json({
                         ok: false,
@@ -597,7 +603,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         stopSchema.updateMany({ routesID: ID }, { $pull: { routesID: ID } }).then(stopDeleted => {
                             res.status(200).json({
                                 ok: true,
-                                resolve:{
+                                resolve: {
                                     routeDeleted,
                                     stopDeleted
                                 },
