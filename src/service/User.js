@@ -46,7 +46,7 @@ module.exports = function (prefix, app, db) {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
                 if (error) reject(error);
-
+                console.log(`Loged in with token: ${Date.now()}`);
                 req.body = data.user;
             });
         }
@@ -67,6 +67,7 @@ module.exports = function (prefix, app, db) {
                     lastLogedIn: Date.now(),
                     $push: { logedInLogs: Date.now() }
                 }).then(resolve => {
+                    console.log(`Loged in: ${Date.now()}`);
                     console.log(resolve);
                 }).catch(err => {
                     console.log(err);
