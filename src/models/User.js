@@ -96,6 +96,16 @@ let userSchema = new Schema({
                 required: true
             }
         },
+    },
+    lastLogedIn: {
+        type: Date,
+        default: Date.now,
+        required: true
+    },
+    logedInLogs: {
+        type: [Date],
+        default: Date.now,
+        required: true  
     }
 });
 

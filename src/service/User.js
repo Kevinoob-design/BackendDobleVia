@@ -62,6 +62,15 @@ module.exports = function (prefix, app, db) {
                     token,
                     resolve,
                 });
+
+                resolve.updateOne({
+                    lastLogedIn: Date.now(),
+                    $push: { logedInLogs: Date.now() }
+                }).then(resolve => {
+                    console.log(resolve);
+                }).catch(err => {
+                    console.log(err);
+                })
             });
         }).catch(err => {
             res.status(400).json({
@@ -250,8 +259,7 @@ module.exports = function (prefix, app, db) {
     app.put(`${prefix}/update/:ID`, (req, res) => {
 
         const ID = req.ID || req.params.ID;
-        const body = req.body;
-        console.log(body);
+        console.log(req.body);
 
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
@@ -265,10 +273,30 @@ module.exports = function (prefix, app, db) {
                     err: 'Oops, we could not validate your information'
                 });
 
-                if (body.password && !body.oldPassword && !body.newPassword) return res.status(400).json({
+                if (req.body.password && !req.body.oldPassword && !req.body.newPassword) return res.status(400).json({
                     ok: false,
                     err: 'Oops, we could not validate your password'
                 });
+
+                const name = (data.user.name != req.body.name) ? req.body.name : data.user.name;
+                const lastName = (data.user.lastName != req.body.lastName) ? req.body.lastName : data.user.lastName
+
+                let body = {
+                    name: name,
+                    lastName: lastName,
+                    fullName: `${name} ${lastName}`,
+                    oldPassword: req.body.oldPassword,
+                    newPassword: req.body.newPassword,
+                    record: {
+                        lastModified: {
+                            by: {
+                                fullName: data.user.fullName,
+                                ID: data.user.ID
+                            },
+                            timeStamp: Date.now()
+                        },
+                    }
+                }
 
                 db.update(ID, body).then(resolve => {
                     resolve.password = body.newPassword || undefined;
