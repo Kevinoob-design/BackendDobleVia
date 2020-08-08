@@ -13,10 +13,6 @@ let feedbackSchema = new Schema({
     rating: {
         type: Number,
     },
-    review: {
-        type: String,
-        required: true
-    },
     improvements: {
         type: String,
         required: false
