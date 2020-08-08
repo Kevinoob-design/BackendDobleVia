@@ -8,7 +8,7 @@ let feedbackSchema = new Schema({
     userID: {
         type: String,
         required: false,
-        unique: true
+        unique: false
     },
     rating: {
         type: Number,
