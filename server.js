@@ -61,7 +61,7 @@ app.use('/api', keyMiddleWare.verifyKey);
 // app.use('/api/user', userMiddleWare.verifyUsers);
 
 // Routes definition with Models
-require('./src/service/General')('/api/route', app, new Crud(Route));
+// require('./src/service/General')('/api/route', app, new Crud(Route));
 require('./src/service/Stops')('/api/newroute', app, new RouteDB(Intersection), new RouteDB(Route));
 require('./src/service/User')('/api/user', app, new UserDB(User));
 require('./src/service/General')('/api/survey', app, new Crud(Survey));

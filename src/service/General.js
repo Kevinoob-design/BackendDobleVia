@@ -1,6 +1,6 @@
 //Module class to declare a rehusable RESTfull API that serves as CRUD for Data Base especified Model.
 module.exports = function (prefix, app, db) {
-    
+
     app.get(`${prefix}/count`, (req, res) => {
         let filter = req.body || {};
         console.log(filter);
@@ -36,7 +36,22 @@ module.exports = function (prefix, app, db) {
     //GET Request to handled to get one by ID from respective DB instance data for specifed MODEL.
     app.get(`${prefix}/:ID`, (req, res) => {
         const ID = req.ID || req.params.ID;
-        db.getOne(ID).then(resolve => {
+        db.getOne(ID, {}).then(resolve => {
+            res.status(200).json({
+                ok: true,
+                resolve,
+            });
+        }).catch(err => {
+            res.status(400).json({
+                ok: false,
+                err
+            });
+        });
+    });
+
+    app.get(`${prefix}/range/:ID`, (req, res) => { 
+        const ID = req.ID || req.params.ID;
+        db.getRange(ID).then(resolve => {
             res.status(200).json({
                 ok: true,
                 resolve,
