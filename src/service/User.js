@@ -341,12 +341,12 @@ module.exports = function (prefix, app, db) {
                 err: 'Oops, we could not validate your information'
             });
 
-            if (!body.password) return res.status(400).json({
+            if (!req.headers.password) return res.status(400).json({
                 ok: false,
                 err: 'Oops, we could not validate your password'
             });
 
-            db.delete(ID, body.password).then(resolve => {
+            db.delete(ID, req.headers.password).then(resolve => {
                 res.status(200).json({
                     ok: true,
                     msg: 'User deleted succesfully',
