@@ -8,7 +8,10 @@ module.exports = function (prefix, app, db) {
     app.get(`${prefix}/count`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) reject(error);
+                if (error) res.status(400).json({
+                    ok: false,
+                    err: error
+                });
 
                 console.log(data);
 
@@ -84,7 +87,10 @@ module.exports = function (prefix, app, db) {
     app.get(`${prefix}/all-users`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) reject(error);
+                if (error) res.status(400).json({
+                    ok: false,
+                    err: error
+                });
 
                 console.log(data);
 
@@ -165,7 +171,10 @@ module.exports = function (prefix, app, db) {
     app.post(`${prefix}/create-user`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) reject(error);
+                if (error) res.status(400).json({
+                    ok: false,
+                    err: error
+                });
 
                 if (data.user.role != 'ADMIN') return res.status(403).json({
                     ok: false,
@@ -216,7 +225,10 @@ module.exports = function (prefix, app, db) {
     app.put(`${prefix}/update-user`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) reject(error);
+                if (error) res.status(400).json({
+                    ok: false,
+                    err: error
+                });
 
                 if (data.user.role != 'ADMIN') return res.status(403).json({
                     ok: false,
