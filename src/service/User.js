@@ -291,12 +291,12 @@ module.exports = function (prefix, app, db) {
                     err: 'Oops, we could not validate your password'
                 });
 
-                const name = (data.user.name != req.body.name) ? req.body.name : data.user.name;
-                const lastName = (data.user.lastName != req.body.lastName) ? req.body.lastName : data.user.lastName
+                const name = (req.body.name) ? data.user.name : data.user.name;
+                const lastName = (req.body.lastName) ? req.body.lastName : data.user.lastName;
 
                 let body = {
-                    name: name,
-                    lastName: lastName,
+                    name: _.upperFirst(name) ,
+                    lastName: _.upperFirst(lastName),
                     fullName: `${name} ${lastName}`,
                     oldPassword: req.body.oldPassword,
                     newPassword: req.body.newPassword,
