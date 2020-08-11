@@ -46,6 +46,84 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
         }
     });
 
+    app.post(`${prefix}/setDetails/:ID`, (req, res) => {
+        if (!req.headers.authorization || !req.headers.authorization.split(' ')[0] === 'Bearer') return res.status(403).json({
+            ok: false,
+            msg: 'You do not have the permission for this'
+        });
+
+        if (!req.params.ID && !req.body.details) return res.status(403).json({
+            ok: false,
+            msg: 'Error validating requirerd params'
+        });
+
+        jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
+            if (error) res.status(400).json({
+                ok: false,
+                err: error
+            });
+
+            if (data.user.role != 'PROVIDER') return res.status(403).json({
+                ok: false,
+                msg: 'You do not have the permission for this'
+            });
+
+            let filter = req.body || {};
+            console.log(filter);
+            routeSchema.update(req.params.ID, { $set: { 'aditionalInfo.details': req.body.details } }).then(resolve => {
+                res.status(200).json({
+                    ok: true,
+                    resolve,
+                });
+            }).catch(err => {
+                res.status(400).json({
+                    ok: false,
+                    err
+                });
+            });
+        });
+
+    });
+
+    app.post(`${prefix}/setWarning/:ID`, (req, res) => {
+        if (!req.headers.authorization || !req.headers.authorization.split(' ')[0] === 'Bearer') return res.status(403).json({
+            ok: false,
+            msg: 'You do not have the permission for this'
+        });
+
+        if (!req.params.ID && !req.body.warning) return res.status(403).json({
+            ok: false,
+            msg: 'Error validating requirerd params'
+        });
+
+        jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
+            if (error) res.status(400).json({
+                ok: false,
+                err: error
+            });
+
+            if (data.user.role != 'PROVIDER') return res.status(403).json({
+                ok: false,
+                msg: 'You do not have the permission for this'
+            });
+
+            let filter = req.body || {};
+            console.log(filter);
+            routeSchema.update(req.params.ID, { $set: { 'aditionalInfo.warnings': req.body.warning } }).then(resolve => {
+                res.status(200).json({
+                    ok: true,
+                    resolve,
+                });
+            }).catch(err => {
+                res.status(400).json({
+                    ok: false,
+                    err
+                });
+            });
+        });
+
+    });
+
     //GET Request to handled to get respective all data from stopSchema instance data for specifed MODEL.
     app.get(`${prefix}/allStops`, (req, res) => {
         // console.log(req.originalUrl);

@@ -68,7 +68,6 @@ module.exports = function (prefix, app, db) {
 
                 resolve.updateOne({
                     lastLogedIn: Date.now(),
-                    $push: { logedInLogs: Date.now() }
                 }).then(resolve => {
                     console.log(`Loged in: ${Date.now()}`);
                     console.log(resolve);
