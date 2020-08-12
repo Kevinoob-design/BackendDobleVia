@@ -16,7 +16,8 @@ module.exports = function (Schema) {
                         spherical: true
                     }
                 },
-                { $limit: limit || 20 }
+                { $limit: limit || 20 },
+                // { "$project": { "_id": 1, "ID": 1, "dist": 1, "location": 1 } }
             ]).then(res => {
                 resolve(res);
             }).catch(err => {

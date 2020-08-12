@@ -58,8 +58,18 @@ let routeSchema = new Schema({
     }],
     position: {
         type: [{
-            LatLng: [Number],
-            streetName: String,
+            LatLng: {
+                type: [Number],
+                required: true
+            },
+            streetName: {
+                type: [String],
+                required: true
+            },
+            index: {
+                type: Number,
+                required: true
+            }
         }],
         required: [true, 'The polyline positions must be provided']
     },

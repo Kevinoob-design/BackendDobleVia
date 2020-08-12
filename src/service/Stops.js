@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const distance = require('@turf/distance').default;
 const SearchEngine = require('../controller/search');
+const { reject } = require('lodash');
 
 //Module class to declare a rehusable RESTfull API that serves as CRUD for Data Base especified Model.
 module.exports = function (prefix, app, stopSchema, routeSchema) {
@@ -258,6 +259,11 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
                 let isSame;
 
+                if (!nearFrom || !nearTo) return res.status(400).json({
+                    ok: false,
+                    msg: 'There was no near routes found close origin nor destination'
+                });
+
                 for (let i = 0; i < nearFrom.length; i++) {
                     const from = nearFrom[i];
                     isSame = from.routesID.filter(function (fromID) {
@@ -483,6 +489,8 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
                     var obj = req.body;
                     obj.ownerID = data.user.ID;
+
+                    obj = obj.position.map((pos, i) => pos.index = i);
 
                     if (!obj.trayectory || !obj.trayectory.length || !obj.trayectory.length == 0) {
                         getSnapedPolylines(req.body['position']).then((trayectory) => {
