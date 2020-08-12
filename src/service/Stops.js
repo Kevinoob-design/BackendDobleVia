@@ -467,7 +467,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                                 newStops.push(stops);
 
                                 if (isCloseStop) {
-                                    stopSchema.updateArray(isCloseStop, { routesID: req.body.ID });
+                                    stopSchema.updateArray(isCloseStop, { routesID: req.body.ID })
                                     stopSchema.updateArray(ID, { routesID: isCloseStop });
                                 }
                             }
