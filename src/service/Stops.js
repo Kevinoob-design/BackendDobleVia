@@ -490,7 +490,12 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                     var obj = req.body;
                     obj.ownerID = data.user.ID;
 
-                    obj = obj.position.map((pos, i) => pos.index = i);
+                    obj.position = obj.position.map((pos, i) => {
+                        return {
+                            ...pos,
+                            index: 1
+                        }
+                    });
 
                     if (!obj.trayectory || !obj.trayectory.length || !obj.trayectory.length == 0) {
                         getSnapedPolylines(req.body['position']).then((trayectory) => {
