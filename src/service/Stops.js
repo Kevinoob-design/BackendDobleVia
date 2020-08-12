@@ -125,6 +125,50 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
     });
 
+    app.put(`${prefix}/transferRoute/:ID`, (req, res) => {
+        if (!req.headers.authorization || !req.headers.authorization.split(' ')[0] === 'Bearer') return res.status(403).json({
+            ok: false,
+            msg: 'You must be loged in'
+        });
+
+        if (!req.params.ID && !req.body.newOwner) return res.status(403).json({
+            ok: false,
+            msg: 'Error validating requirerd params'
+        });
+
+        jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
+            if (error) res.status(400).json({
+                ok: false,
+                err: error
+            });
+
+            if (data.user.role != 'ADMIN') return res.status(403).json({
+                ok: false,
+                msg: 'You do not have the permission for this'
+            });
+
+            routeSchema.get({ ID: req.params.ID, ownerID: data.user.ID }).then(resolveValidation => {
+                if (!resolveValidation) return res.status(403).json({
+                    ok: false,
+                    msg: 'This route does not belongs to you'
+                });
+
+                routeSchema.update(req.params.ID, { $set: { ownerID: req.body.newOwner } }).then(resolve => {
+                    res.status(200).json({
+                        ok: true,
+                        resolve,
+                        msg: 'Transfer succesfull'
+                    });
+                }).catch(err => {
+                    res.status(400).json({
+                        ok: false,
+                        err
+                    });
+                });
+            });
+        });
+    });
+
     //GET Request to handled to get respective all data from stopSchema instance data for specifed MODEL.
     app.get(`${prefix}/allStops`, (req, res) => {
         // console.log(req.originalUrl);
@@ -402,99 +446,15 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                     msg: 'You do not have the permission for this'
                 });
 
-                let body = req.body;
-                console.log(req.body);
+                let obj = req.body;
+                console.log(obj);
 
-                var oldStops = [];
-                var newStops = [];
-                var closeStops = [];
-                var added = 0;
-
-                stopSchema.get().then(stops => {
-                    if (stops.length > 0) {
-
-                        for (let i = 0; i < req.body['position'].length; i++) {
-                            const position = req.body['position'][i];
-
-                            var isOldStop = '';
-                            var isCloseStop = '';
-
-                            for (let j = 0; j < stops.length; j++) {
-                                const stop = stops[j];
-
-                                var dist = distance(position['LatLng'], stop.location.coordinates, {
-                                    units: 'kilometers'
-                                });
-
-                                if (dist <= 0.50) {
-                                    console.log(`Very close stop: ${req.body.ID}`);
-                                    isOldStop = stop['ID'];
-                                    oldStops.push(stop);
-                                }
-
-                                if (dist <= 0.300) {
-                                    console.log(`Close enough: ${req.body.ID}`);
-                                    isCloseStop = stop['ID'];
-                                    closeStops.push(stop);
-                                }
-                            }
-
-                            if (isOldStop) {
-                                stopSchema.updateArray(isOldStop, { routesID: req.body.ID });
-
-                                if (req.body.aditionalInfo.transportType == 'metro' || req.body.aditionalInfo.transportType == 'teleferico') {
-                                    stopSchema.save({
-                                        ID: uuidv4(),
-                                        location: { type: 'Point', coordinates: position['LatLng'] },
-                                        formattedAddress: position['streetName'],
-                                        transportType: req.body.aditionalInfo.transportType,
-                                        routesID: req.body.ID
-                                    });
-                                    added++;
-                                    newStops.push(stops);
-                                }
-                            }
-                            else {
-                                const ID = uuidv4();
-                                stopSchema.save({
-                                    ID: ID,
-                                    location: { type: 'Point', coordinates: position['LatLng'] },
-                                    formattedAddress: position['streetName'],
-                                    transportType: req.body.aditionalInfo.transportType,
-                                    routesID: req.body.ID
-                                });
-                                added++;
-                                newStops.push(stops);
-
-                                if (isCloseStop) {
-                                    stopSchema.updateArray(isCloseStop, { routesID: req.body.ID })
-                                    stopSchema.updateArray(ID, { routesID: isCloseStop });
-                                }
-                            }
-                        }
-                    } else {
-                        for (let i = 0; i < req.body['position'].length; i++) {
-                            const position = req.body['position'][i];
-
-                            newStops.push({
-                                ID: uuidv4(),
-                                location: { type: 'Point', coordinates: position['LatLng'] },
-                                formattedAddress: position['streetName'],
-                                routesID: req.body.ID
-                            })
-
-                        }
-                        stopSchema.saveMany(newStops);
-                    }
-
-                    var obj = req.body;
+                calculateNearStops(obj, obj.ID).then(stopsAdded => {
                     obj.ownerID = data.user.ID;
 
                     obj.position = obj.position.map((pos, i) => {
-                        return {
-                            ...pos,
-                            index: 1
-                        }
+                        pos.index = i
+                        return pos;
                     });
 
                     if (!obj.trayectory || !obj.trayectory.length || !obj.trayectory.length == 0) {
@@ -503,13 +463,9 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                             routeSchema.save(obj).then(resolve => {
                                 res.status(200).json({
                                     ok: true,
-                                    resolve,
-                                    oldStops,
-                                    newStops,
-                                    added,
+                                    stopsAdded,
                                     msg: 'Update succesfull',
                                 });
-
                             }).catch(err => {
                                 console.log(err);
                                 res.status(400).json({
@@ -517,7 +473,6 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                                     err
                                 });
                             });
-
                         }).catch(err => {
                             console.log(err);
                             res.status(400).json({
@@ -530,9 +485,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                             res.status(200).json({
                                 ok: true,
                                 resolve,
-                                oldStops,
-                                newStops,
-                                added,
+                                stopsAdded,
                                 msg: 'Update succesfull',
                             });
 
@@ -544,12 +497,6 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                             });
                         });
                     }
-                }).catch(err => {
-                    console.log(err);
-                    res.status(400).json({
-                        ok: false,
-                        err
-                    });
                 });
             });
         } else {
@@ -559,6 +506,116 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
             });
         }
     });
+
+    function calculateNearStops(body, routeID) {
+        return new Promise((resolve, reject) => {
+            var oldStops = [];
+            var newStops = [];
+            var closeStops = [];
+            var added = 0;
+
+            stopSchema.get().then(stops => {
+                if (stops.length > 0) {
+                    for (let i = 0; i < body['position'].length; i++) {
+                        const position = body['position'][i];
+
+                        var isOldStop = '';
+                        var isCloseStop = '';
+
+                        for (let j = 0; j < stops.length; j++) {
+                            const stop = stops[j];
+
+                            var dist = distance(position['LatLng'], stop.location.coordinates, {
+                                units: 'kilometers'
+                            });
+
+                            if (dist <= 0.50) {
+                                console.log(`Very close stop: ${routeID}`);
+                                isOldStop = stop['ID'];
+                                oldStops.push(stop);
+                            }
+
+                            if (dist <= 0.300) {
+                                console.log(`Close enough: ${routeID}`);
+                                isCloseStop = stop['ID'];
+                                closeStops.push(stop);
+                            }
+                        }
+
+                        if (isOldStop) {
+
+                            stopSchema.updateArray(isOldStop, { routesID: routeID }).catch(err => {
+                                console.log(err);
+                                reject(err);
+                            });
+
+                            if (body.aditionalInfo.transportType == 'metro' || body.aditionalInfo.transportType == 'teleferico') {
+                                stopSchema.save({
+                                    ID: uuidv4(),
+                                    location: { type: 'Point', coordinates: position['LatLng'] },
+                                    formattedAddress: position['streetName'],
+                                    transportType: body.aditionalInfo.transportType,
+                                    routesID: [routeID]
+                                });
+                                added++;
+                                newStops.push(stops);
+                            }
+                        }
+                        else {
+                            const ID = uuidv4();
+                            stopSchema.save({
+                                ID: ID,
+                                location: { type: 'Point', coordinates: position['LatLng'] },
+                                formattedAddress: position['streetName'],
+                                transportType: body.aditionalInfo.transportType,
+                                routesID: [routeID]
+                            });
+                            added++;
+                            newStops.push(stops);
+
+                            if (isCloseStop) {
+                                stopSchema.updateArray(isCloseStop, { routesID: routeID }).catch(err => {
+                                    console.log(err);
+                                    reject(err);
+                                });
+                                stopSchema.updateArray(ID, { routesID: isCloseStop }).catch(err => {
+                                    console.log(err);
+                                    reject(err);
+                                });
+                            }
+                        }
+                    }
+                }
+                else {
+                    for (let i = 0; i < body['position'].length; i++) {
+                        const position = body['position'][i];
+
+                        newStops.push({
+                            ID: uuidv4(),
+                            location: { type: 'Point', coordinates: position['LatLng'] },
+                            formattedAddress: position['streetName'],
+                            transportType: body.aditionalInfo.transportType,
+                            routesID: [routeID]
+                        })
+
+                    }
+                    stopSchema.saveMany(newStops).catch(err => {
+                        console.log(err);
+                        reject(err);
+                    });
+                }
+                resolve({
+                    oldStops,
+                    newStops,
+                    closeStops,
+                    added,
+                });
+            }).catch(err => {
+                console.log(err);
+                reject(err);
+            });
+        });
+    }
 
     function getSnapedPolylines(positions) {
         return new Promise((resolve, reject) => {
@@ -647,14 +704,42 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         msg: 'This route does not belongs to you'
                     });
 
-                    if (body.redoTrayectory == true) {
-                        getSnapedPolylines(body['position']).then(trayectory => {
-                            body.trayectory = trayectory;
+                    body.position = body.position.map((pos, i) => {
+                        pos.index = i
+                        return pos;
+                    });
+
+                    calculateNearStops(body, ID).then(stopsAdded => {
+                        if (body.redoTrayectory == true) {
+                            getSnapedPolylines(body['position']).then(trayectory => {
+                                body.trayectory = trayectory;
+                                routeSchema.update(ID, body).then(resolve => {
+                                    res.status(200).json({
+                                        ok: true,
+                                        msg: 'Update succesfull',
+                                        resolve,
+                                        stopsAdded
+                                    });
+                                }).catch(err => {
+                                    res.status(400).json({
+                                        ok: false,
+                                        err
+                                    });
+                                });
+                            }).catch(err => {
+                                console.log(err);
+                                res.status(400).json({
+                                    ok: false,
+                                    err
+                                });
+                            });
+                        } else {
                             routeSchema.update(ID, body).then(resolve => {
                                 res.status(200).json({
                                     ok: true,
                                     msg: 'Update succesfull',
-                                    resolve
+                                    resolve,
+                                    stopsAdded
                                 });
                             }).catch(err => {
                                 res.status(400).json({
@@ -662,27 +747,8 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                                     err
                                 });
                             });
-                        }).catch(err => {
-                            console.log(err);
-                            res.status(400).json({
-                                ok: false,
-                                err
-                            });
-                        });
-                    } else {
-                        routeSchema.update(ID, body).then(resolve => {
-                            res.status(200).json({
-                                ok: true,
-                                msg: 'Update succesfull',
-                                resolve
-                            });
-                        }).catch(err => {
-                            res.status(400).json({
-                                ok: false,
-                                err
-                            });
-                        });
-                    }
+                        }
+                    });
                 }).catch(err => {
                     res.status(400).json({
                         ok: false,
@@ -717,6 +783,30 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
             });
         });
     });
+
+    // app.put(`${prefix}/add/index`, (req, res) => {
+    //     routeSchema.get({ID: req.body.ID}, {}).then(doc => {
+
+    //         const lol = doc[0];
+
+    //         lol.position = lol.position.map((pos, i) => {
+    //             pos.index = i
+    //             return pos;
+    //         });
+
+    //         routeSchema.update(req.body.ID, {$set: {position: lol.position} }).then(resolve => {
+    //             res.status(200).json({
+    //                 ok: true,
+    //                 resolve: lol.position,
+    //             });
+    //         }).catch(err => {
+    //             res.status(400).json({
+    //                 ok: false,
+    //                 err
+    //             });
+    //         });
+    //     });
+    // });
 
     //DELETE Request to handled the deletion of existing data from respective stopSchema instance for specifed MODEL.
     app.delete(`${prefix}/:ID`, (req, res) => {
