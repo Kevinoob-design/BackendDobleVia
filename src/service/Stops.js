@@ -511,7 +511,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
             var newStops = [];
 
             body.position.forEach(pos => {
-                stopSchema.getNear(pos.LatLng, 300, 1).then(near => {
+                stopSchema.getNear(pos.LatLng, 150, 1).then(near => {
                     if (near.length > 0) return stopSchema.updateArray(near[0].ID, { routesID: routeID });
                 }).catch(err => {
                     console.log(err);
@@ -628,7 +628,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         return pos;
                     });
 
-                    calculateNearStops(body, ID);
+                    calculateNearStops(body.newStops, ID);
 
                     if (body.redoTrayectory == true) {
                         getSnapedPolylines(body['position']).then(trayectory => {
