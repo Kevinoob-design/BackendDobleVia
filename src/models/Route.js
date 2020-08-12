@@ -63,7 +63,7 @@ let routeSchema = new Schema({
                 required: true
             },
             streetName: {
-                type: [String],
+                type: String,
                 required: true
             },
             index: {

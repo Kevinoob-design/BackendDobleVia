@@ -22,7 +22,10 @@ let stopSchema = new Schema({
             required: true
         }
     },
-    transportType: String,
+    transportType: {
+        type: String,
+        required: true
+    },
     formattedAddress: String,
     routesID: [String],
     record: {
@@ -30,17 +33,6 @@ let stopSchema = new Schema({
             type: Date,
             default: Date.now,
             required: true
-        },
-        lastModified: {
-            by: {
-                type: String,
-                required: true
-            },
-            timeStamp: {
-                type: Date,
-                default: Date.now,
-                required: true
-            }
         },
         createdBy: {
             type: String,
