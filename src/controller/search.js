@@ -1,7 +1,7 @@
 module.exports = function (routes, collissions) {
 
-    console.log(routes);
-    console.log(collissions);
+    // console.log(routes);
+    // console.log(collissions);
 
     // The graph
     const adjacencyList = new Map();
@@ -12,11 +12,20 @@ module.exports = function (routes, collissions) {
     }
 
     // Add edge, undirected
+    // function addEdge(edges) {
+    //     for (let i = 0; i < edges.length; i++) {
+    //         if (i + 1 < edges.length) {
+    //             adjacencyList.get(edges[0]).push(edges[i + 1]);
+    //             adjacencyList.get(edges[i + 1]).push(edges[0]);
+    //         }
+    //     }
+    // }
+
     function addEdge(edges) {
-        for (let i = 0; i < edges.length; i++) {
-            if (i + 1 < edges.length) {
-                adjacencyList.get(edges[0]).push(edges[i + 1]);
-                adjacencyList.get(edges[i + 1]).push(edges[0]);
+        for (let i = 0; i < edges.ID.length; i++) {
+            if (i + 1 < edges.ID.length) {
+                adjacencyList.get(edges.ID[0]).push({ ID: edges.ID[i + 1], street: edges.street });
+                adjacencyList.get(edges.ID[i + 1]).push({ ID: edges.ID[0], street: edges.street });
             }
         }
     }
@@ -24,14 +33,14 @@ module.exports = function (routes, collissions) {
     // Create the Graph
     routes.forEach(addNode);
     collissions.forEach(collission => addEdge(collission));
-    console.log(adjacencyList);
+    // console.log(adjacencyList);
 
     //------------------------------------------------------------------------------------------------------------------------
 
     // Breadth-first Search (BFS)
     this.bfs = function (start, ends) {
         const visited = new Set();
-        const queue = [start];
+        const queue = [start.ID];
         const confirmed = [];
 
         // console.log(`starts in ${start}`);
@@ -41,26 +50,32 @@ module.exports = function (routes, collissions) {
             const route = queue.shift(); // mutates the queue
             const destinations = adjacencyList.get(route);
 
-            for (const destination of destinations) {
+            let trasferStart = destinations.filter(destination => destination.ID == start.ID);
+            if (trasferStart.length > 0) trasferStart = trasferStart.map(trasfer => trasfer.street);
 
-                for (const end of ends) {
-                    if (destination === end) {
-                        confirmed.push(route === start ? [start, end] : [start, route, end]);
-                        console.log(`${route} - ${end} found!`);
+            for (const destination of destinations) {
+                for (const end of ends.ID) {
+                    if (destination.ID === end) {
+                        confirmed.push(route === start.ID ?
+                            [start, { end: end, streetTransferStart: destination.street, streeTransfertEnd: ends.street }]
+                            :
+                            [start, { transfer: route, streetTransferStart: trasferStart, streeTransfertEnd: destination.street }, { end: end, street: ends.street }]);
+
+                        // console.log(`${route} - ${end} found!`);
                     }
                 }
 
-                if (!visited.has(destination)) {
-                    visited.add(destination);
-                    if(!ends.includes(destination)){
-                        queue.push(destination);
+                if (!visited.has(destination.ID)) {
+                    visited.add(destination.ID);
+                    if (!ends.ID.includes(destination.ID)) {
+                        queue.push(destination.ID);
                     }
-                    console.log(visited);
+                    // console.log(visited);
                 }
             }
         }
-        let filter = confirmed.filter((t={},a=>!(t[a]=a in t)));
-        return filter;
+        // let filter = confirmed.filter((t={},a=>!(t[a]=a in t)));
+        return confirmed;
     }
 
     // Depth-first Search (DFS)

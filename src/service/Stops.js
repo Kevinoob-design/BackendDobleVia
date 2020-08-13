@@ -339,16 +339,20 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         stopSchema.getStopCollissions().then(async collissions => {
 
                             routesID = routesID.map(routes => routes.ID);
-                            collissions = collissions.map(collission => collission.routesID);
-                            const from = nearFrom.map(from => from.routesID);
-                            const to = nearTo.map(to => to.routesID.map(routeID => routeID));
+                            collissions = collissions.map(collission => { return {ID: collission.routesID, street: collission.formattedAddress} } );
+
+                            const from = nearFrom.map(from => {return {ID: from.routesID[0], street: from.formattedAddress}});
+                            const to = nearTo.map(to => {return {ID: to.routesID.map(routeID => routeID), street: to.formattedAddress}});
+
+                            // const from = nearFrom.map(from => from.routesID);
+                            // const to = nearTo.map(to => to.routesID.map(routeID => routeID));
 
                             const searchEngine = new SearchEngine(routesID, collissions);
 
-                            console.log(`Options for from: ${from[0]}`);
-                            console.log(`Options for to: ${to[0]}`);
+                            // console.log(`Options for from: ${from[0]}`);
+                            // console.log(`Options for to: ${to[0]}`);
 
-                            const filter = searchEngine.bfs(from[0][0], to[0]);
+                            const filter = searchEngine.bfs(from[0], to[0]);
                             // searchEngine.dfs(from[0][0], to[0]);
 
                             console.log(filter);
@@ -538,7 +542,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
     function getSnapedPolylines(positions) {
         return new Promise((resolve, reject) => {
-            var apiKey = process.env.GOOGLE_API_KEY || 'AIzaSyDANio1kmkzoNrYIPkxWAF5P86ZXok1I0U';
+            var apiKey = process.env.GOOGLE_API_KEY;
             var path = '';
 
             positions.forEach(position => {

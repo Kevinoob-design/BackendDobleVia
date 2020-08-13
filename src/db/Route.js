@@ -36,7 +36,7 @@ module.exports = function (Schema) {
                     { routesID: { $size: 0 } },
                     { routesID: { $size: 1 } }
                 ]
-            }, { routesID: 1, _id: 0 }).exec((err, docs) => {
+            }, { routesID: 1, formattedAddress: 1 }).exec((err, docs) => {
                 if (err) {
                     reject(err);
                 }
