@@ -19,15 +19,21 @@ let stopSchema = new Schema({
         coordinates:{
             type: [Number],
             index: '2dsphere',
-            required: true
+            required: [true, 'the coordinates are required']
         }
     },
     transportType: {
-        type: String,
-        required: true
+        type: [String],
+        required: [true, 'the type of transportation for this stop must be provided']
     },
-    formattedAddress: String,
-    routesID: [String],
+    formattedAddress: {
+        type: [String],
+        required: [true, 'street adddress for this stop must be provided']
+    },
+    routesID: {
+        type: [String],
+        required: [true, 'Routes ID must be provided']
+    },
     record: {
         createdDate: {
             type: Date,

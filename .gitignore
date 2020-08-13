@@ -5,3 +5,4 @@ npm-debug.log
 MongoUser.txt
 .DS_Store*
 .env*
+.vscode/

@@ -1,8 +1,5 @@
 module.exports = function (routes, collissions) {
 
-    // console.log(routes);
-    // console.log(collissions);
-
     // The graph
     const adjacencyList = new Map();
 
@@ -11,21 +8,11 @@ module.exports = function (routes, collissions) {
         adjacencyList.set(route, []);
     }
 
-    // Add edge, undirected
-    // function addEdge(edges) {
-    //     for (let i = 0; i < edges.length; i++) {
-    //         if (i + 1 < edges.length) {
-    //             adjacencyList.get(edges[0]).push(edges[i + 1]);
-    //             adjacencyList.get(edges[i + 1]).push(edges[0]);
-    //         }
-    //     }
-    // }
-
     function addEdge(edges) {
         for (let i = 0; i < edges.ID.length; i++) {
             if (i + 1 < edges.ID.length) {
-                adjacencyList.get(edges.ID[0]).push({ ID: edges.ID[i + 1], street: edges.street });
-                adjacencyList.get(edges.ID[i + 1]).push({ ID: edges.ID[0], street: edges.street });
+                adjacencyList.get(edges.ID[0]).push({ ID: edges.ID[i + 1], street: edges.street[i + 1] });
+                adjacencyList.get(edges.ID[i + 1]).push({ ID: edges.ID[0], street: edges.street[0] });
             }
         }
     }
@@ -33,7 +20,6 @@ module.exports = function (routes, collissions) {
     // Create the Graph
     routes.forEach(addNode);
     collissions.forEach(collission => addEdge(collission));
-    // console.log(adjacencyList);
 
     //------------------------------------------------------------------------------------------------------------------------
 
@@ -42,8 +28,6 @@ module.exports = function (routes, collissions) {
         const visited = new Set();
         const queue = [start.ID];
         const confirmed = [];
-
-        // console.log(`starts in ${start}`);
 
         while (queue.length > 0) {
 
@@ -60,8 +44,6 @@ module.exports = function (routes, collissions) {
                             [start, { end: end, streetTransferStart: destination.street, streeTransfertEnd: ends.street }]
                             :
                             [start, { transfer: route, streetTransferStart: trasferStart, streeTransfertEnd: destination.street }, { end: end, street: ends.street }]);
-
-                        // console.log(`${route} - ${end} found!`);
                     }
                 }
 
@@ -70,7 +52,6 @@ module.exports = function (routes, collissions) {
                     if (!ends.ID.includes(destination.ID)) {
                         queue.push(destination.ID);
                     }
-                    // console.log(visited);
                 }
             }
         }

@@ -339,23 +339,25 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         stopSchema.getStopCollissions().then(async collissions => {
 
                             routesID = routesID.map(routes => routes.ID);
-                            collissions = collissions.map(collission => { return {ID: collission.routesID, street: collission.formattedAddress} } );
+                            collissions = collissions.map(collission => { return { ID: collission.routesID, street: collission.formattedAddress } });
 
-                            const from = nearFrom.map(from => {return {ID: from.routesID[0], street: from.formattedAddress}});
-                            const to = nearTo.map(to => {return {ID: to.routesID.map(routeID => routeID), street: to.formattedAddress}});
-
-                            // const from = nearFrom.map(from => from.routesID);
-                            // const to = nearTo.map(to => to.routesID.map(routeID => routeID));
+                            const from = nearFrom.map(from => { return { ID: from.routesID[0], street: from.formattedAddress[0] } });
+                            const to = nearTo.map(to => { return { ID: to.routesID.map(routeID => routeID), street: to.formattedAddress[0] } });
 
                             const searchEngine = new SearchEngine(routesID, collissions);
-
-                            // console.log(`Options for from: ${from[0]}`);
-                            // console.log(`Options for to: ${to[0]}`);
 
                             const filter = searchEngine.bfs(from[0], to[0]);
                             // searchEngine.dfs(from[0][0], to[0]);
 
-                            console.log(filter);
+                            return res.status(200).json({
+                                ok: true,
+                                resolve: {
+                                    routesID: filter,
+                                    from: nearFrom,
+                                    to: nearTo
+                                }
+                            });
+
                             const suggested = [];
 
                             for (const ids of filter) {
@@ -453,8 +455,6 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                 let obj = req.body;
                 console.log(obj);
 
-                calculateNearStops(obj, obj.ID);
-
                 obj.ownerID = data.user.ID;
 
                 obj.position = obj.position.map((pos, i) => {
@@ -463,14 +463,21 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                 });
 
                 if (!obj.trayectory || !obj.trayectory.length || !obj.trayectory.length == 0) {
-                    getSnapedPolylines(req.body['position']).then((trayectory) => {
+                    getSnapedPolylines(req.body.position).then((trayectory) => {
                         obj.trayectory = trayectory;
                         routeSchema.save(obj).then(resolve => {
+                            if (!resolve) return res.status(200).json({
+                                ok: false,
+                                resolve,
+                                msg: 'Update unsuccesful',
+                            });
+
                             res.status(200).json({
                                 ok: true,
                                 resolve,
                                 msg: 'Update succesfull',
                             });
+                            calculateNearStops(obj, obj.ID);
                         }).catch(err => {
                             console.log(err);
                             res.status(400).json({
@@ -487,12 +494,18 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                     });
                 } else {
                     routeSchema.save(obj).then(resolve => {
+                        if (!resolve) return res.status(200).json({
+                            ok: false,
+                            resolve,
+                            msg: 'Update unsuccesful',
+                        });
+
                         res.status(200).json({
                             ok: true,
                             resolve,
                             msg: 'Update succesfull',
                         });
-
+                        calculateNearStops(obj, obj.ID);
                     }).catch(err => {
                         console.log(err);
                         res.status(400).json({
@@ -516,7 +529,12 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
             body.position.forEach(pos => {
                 stopSchema.getNear(pos.LatLng, 150, 1).then(near => {
-                    if (near.length > 0) return stopSchema.updateArray(near[0].ID, { routesID: routeID });
+                    if (near.length > 0) return stopSchema.updateArray(near[0].ID,
+                        {
+                            routesID: routeID,
+                            formattedAddress: pos.streetName,
+                            transportType: body.aditionalInfo.transportType
+                        });
                 }).catch(err => {
                     console.log(err);
                 });
@@ -524,14 +542,14 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                 newStops.push({
                     ID: uuidv4(),
                     location: { type: 'Point', coordinates: pos.LatLng },
-                    formattedAddress: pos.streetName,
-                    transportType: body.aditionalInfo.transportType,
+                    formattedAddress: [pos.streetName],
+                    transportType: [body.aditionalInfo.transportType],
                     routesID: [routeID]
                 });
             });
 
             stopSchema.saveMany(newStops).then(docs => {
-                console.log(docs);
+                console.log('success stops');
                 resolve('Succesfull');
             }).catch(err => {
                 console.log(err);
@@ -632,18 +650,23 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         return pos;
                     });
 
-                    calculateNearStops(body.newStops, ID);
-
                     if (body.redoTrayectory == true) {
                         getSnapedPolylines(body['position']).then(trayectory => {
                             body.trayectory = trayectory;
                             routeSchema.update(ID, body).then(resolve => {
+                                if (!resolve) return res.status(200).json({
+                                    ok: false,
+                                    resolve,
+                                    msg: 'Update unsuccesful',
+                                });
+
                                 res.status(200).json({
                                     ok: true,
                                     msg: 'Update succesfull',
                                     resolve,
                                     stopsAdded
                                 });
+                                calculateNearStops(body.newStops, ID);
                             }).catch(err => {
                                 res.status(400).json({
                                     ok: false,
@@ -659,11 +682,18 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         });
                     } else {
                         routeSchema.update(ID, body).then(resolve => {
+                            if (!resolve) return res.status(200).json({
+                                ok: false,
+                                resolve,
+                                msg: 'Update unsuccesful',
+                            });
+
                             res.status(200).json({
                                 ok: true,
                                 msg: 'Update succesfull',
                                 resolve
                             });
+                            calculateNearStops(body.newStops, ID);
                         }).catch(err => {
                             res.status(400).json({
                                 ok: false,
@@ -671,7 +701,6 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                             });
                         });
                     }
-
                 }).catch(err => {
                     res.status(400).json({
                         ok: false,
