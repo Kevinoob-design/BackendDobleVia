@@ -27,6 +27,20 @@ module.exports = function (Schema) {
         });
     }
 
+    this.getPositionRanges = (ID, indexA, indexB) => {
+        return new Promise((resolve, reject) => {
+            Schema.aggregate([
+                { $match: ID },
+                { "$project": { "_id": 0, "ID": 1, "position": { "$slice": ["$position", indexA, indexB] } } }
+            ]).then(res => {
+                resolve(res);
+            }).catch(err => {
+                console.log(err);
+                reject(err);
+            });
+        });
+    }
+
     this.getStopCollissions = () => {
         return new Promise((resolve, reject) => {
 

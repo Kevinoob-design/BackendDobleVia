@@ -34,16 +34,16 @@ module.exports = function (routes, collissions) {
             const route = queue.shift(); // mutates the queue
             const destinations = adjacencyList.get(route);
 
-            let trasferStart = destinations.filter(destination => destination.ID == start.ID);
-            if (trasferStart.length > 0) trasferStart = trasferStart.map(trasfer => trasfer.street);
+            // let trasferStart = destinations.filter(destination => destination.ID == start.ID);
+            // if (trasferStart.length > 0) trasferStart = trasferStart.map(trasfer => trasfer.street);
 
             for (const destination of destinations) {
                 for (const end of ends.ID) {
                     if (destination.ID === end) {
                         confirmed.push(route === start.ID ?
-                            [start, { end: end, streetTransferStart: destination.street, streeTransfertEnd: ends.street }]
+                            [start, { ID: end, streetTransferStart: destination.street, streeTransfertEnd: ends.street }]
                             :
-                            [start, { transfer: route, streetTransferStart: trasferStart, streeTransfertEnd: destination.street }, { end: end, street: ends.street }]);
+                            [start, { ID: route, streetTransferStart: destination.street, streeTransfertEnd: destination.street }, { ID: end, street: ends.street }]);
                     }
                 }
 
@@ -55,7 +55,6 @@ module.exports = function (routes, collissions) {
                 }
             }
         }
-        // let filter = confirmed.filter((t={},a=>!(t[a]=a in t)));
         return confirmed;
     }
 

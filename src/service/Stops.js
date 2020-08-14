@@ -59,7 +59,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
         });
 
         jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-            if (error) res.status(400).json({
+            if (error) return res.status(400).json({
                 ok: false,
                 err: error
             });
@@ -328,9 +328,19 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                         res.status(200).json({
                             ok: true,
                             resolve: {
+                                transfers: [[{
+                                    "ID": nearFrom[0].routesID,
+                                    "street": nearFrom[0].formattedAddress
+                                },
+                                ],
+                                [{
+                                    "ID": nearTo[0].routesID,
+                                    "street": nearTo[0].formattedAddress
+                                }]
+                                ],
                                 suggested: [suggested],
-                                from: nearFrom,
-                                to: nearTo
+                                // from: nearFrom,
+                                // to: nearTo
                             }
                         });
                     });
@@ -346,21 +356,31 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
 
                             const searchEngine = new SearchEngine(routesID, collissions);
 
-                            const filter = searchEngine.bfs(from[0], to[0]);
+                            let filter = searchEngine.bfs(from[0], to[0]);
                             // searchEngine.dfs(from[0][0], to[0]);
 
-                            return res.status(200).json({
-                                ok: true,
-                                resolve: {
-                                    routesID: filter,
-                                    from: nearFrom,
-                                    to: nearTo
-                                }
-                            });
+                            // return res.status(200).json({
+                            //     ok: true,
+                            //     resolve: {
+                            //         routesID: filter,
+                            //         from: nearFrom,
+                            //         to: nearTo
+                            //     }
+                            // });
 
                             const suggested = [];
+                            let arrayID = filter.map(filterParent => filterParent.map(filterId => filterId.ID));
+                            arrayID = arrayID.filter((t = {}, a => !(t[a] = a in t)));
 
-                            for (const ids of filter) {
+                            const seen = new Set();
+                            filter = filter.filter(el => {
+                                const e = el.map(e => e.ID)
+                                const duplicate = seen.has(e[1]);
+                                seen.add(e[1]);
+                                return !duplicate;
+                            });
+
+                            for (const ids of arrayID) {
                                 await routeSchema.getRange(ids).then(resolve => {
                                     console.log(ids);
 
@@ -382,15 +402,44 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                                 });
                             }
 
-                            console.log(suggested);
+                            // let stopToStop = [];
+
+                            // suggested.map((map1, i) => {
+                            //     const indexes = [];
+                            //     map1.map((map2, j) => {
+                            //         const street = filter[i][j];
+                            //         let index
+
+                            //         if(j == 0) {
+                            //             index = map2.position.filter(index => index.streetName == street.street); 
+                            //             indexes.push(index[0].index);
+                            //         }
+                            //         if(j == 1) {
+                            //             index = map2.position.filter(index => index.streetName == street.streetTransferStart[0] || street.streetTransferStart); 
+                            //             indexes.push(index[0].index);
+                            //         }
+                            //         if(typeof street.streetTransferStart != 'string' && street.streetTransferStart?.[1]) {
+                            //             index = map2.position.filter(index => index.streetName == street.streetTransferStart[1]); 
+                            //             indexes.push(index[0].index);
+                            //         }
+                            //         if(j == 2) {
+                            //             index = map2.position.filter(index => index.streetName == street.streeTransfertEnd); 
+                            //             indexes.push(index[0].index);
+                            //         }
+                            //     });
+
+                            //     console.log(indexes);
+                            // });
+
+                            // routeSchema.getPositionRanges()
 
                             res.status(200).json({
                                 ok: true,
                                 resolve: {
-                                    routesID: filter,
+                                    transfers: filter,
                                     suggested,
-                                    from: nearFrom,
-                                    to: nearTo
+                                    // from: nearFrom,
+                                    // to: nearTo
                                 }
                             });
                         }).catch(err => {
@@ -399,7 +448,6 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                                 err
                             });
                         });
-
                     }).catch(err => {
                         res.status(400).json({
                             ok: false,
