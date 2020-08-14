@@ -663,8 +663,7 @@ module.exports = function (prefix, app, stopSchema, routeSchema) {
                                 res.status(200).json({
                                     ok: true,
                                     msg: 'Update succesfull',
-                                    resolve,
-                                    stopsAdded
+                                    resolve
                                 });
                                 calculateNearStops(body.newStops, ID);
                             }).catch(err => {
