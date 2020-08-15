@@ -8,7 +8,7 @@ module.exports = function (prefix, app, db) {
     app.get(`${prefix}/count`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) res.status(400).json({
+                if (error) return res.status(400).json({
                     ok: false,
                     err: error
                 });
@@ -48,7 +48,10 @@ module.exports = function (prefix, app, db) {
     app.post(`${prefix}/signin`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) reject(error);
+                if (error) return res.status(400).json({
+                    ok: false,
+                    err: error
+                });
                 console.log(`Loged in with token: ${Date.now()}`);
                 req.body = data.user;
             });
@@ -86,7 +89,7 @@ module.exports = function (prefix, app, db) {
     app.get(`${prefix}/all-users`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) res.status(400).json({
+                if (error) return res.status(400).json({
                     ok: false,
                     err: error
                 });
@@ -170,7 +173,7 @@ module.exports = function (prefix, app, db) {
     app.post(`${prefix}/create-user`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) res.status(400).json({
+                if (error) return res.status(400).json({
                     ok: false,
                     err: error
                 });
@@ -224,7 +227,7 @@ module.exports = function (prefix, app, db) {
     app.put(`${prefix}/update-user`, (req, res) => {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-                if (error) res.status(400).json({
+                if (error) return res.status(400).json({
                     ok: false,
                     err: error
                 });
@@ -340,7 +343,7 @@ module.exports = function (prefix, app, db) {
         console.log(req.body);
 
         jwt.verify(req.headers.authorization.split(' ')[1], process.env.jwtKey, (error, data) => {
-            if (error) res.status(400).json({
+            if (error) return res.status(400).json({
                 ok: false,
                 err: error
             });
