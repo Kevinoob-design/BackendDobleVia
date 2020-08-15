@@ -29,8 +29,8 @@
         "mongoose": "^5.9.1",
         "mongoose-float": "^1.0.4",
         "mongoose-unique-validator": "^2.0.3",
-        "nodemon": "^2.0.4",
         "socket.io": "^2.3.0",
         "uuid": "^7.0.3"
-    }
+    },
+    "devDependencies": {}
 }
