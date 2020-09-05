@@ -3,9 +3,14 @@ version: "3.6"
 services:
     backend:
         container_name: backend
-        # image: node:12.18.1
         build: ./
         command: npm start
+
+        environment: 
+            MONGO_HOST: mongodb://mongo:27017/rutes
+
+        links: 
+            - database
 
         working_dir: /usr/src/doblevia-backend
         ports: 
@@ -13,3 +18,9 @@ services:
         volumes: 
             - ./:/usr/src/doblevia-backend
             - /usr/src/doblevia-backend/node_modules
+
+    database:
+        container_name: mongo
+        image: mongo
+        ports: 
+            - "27017:27017"
