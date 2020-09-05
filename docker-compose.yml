@@ -9,9 +9,6 @@ services:
         environment: 
             MONGO_HOST: mongodb://mongo:27017/rutes
 
-        links: 
-            - database
-
         working_dir: /usr/src/doblevia-backend
         ports: 
             - "3001:3001" 
