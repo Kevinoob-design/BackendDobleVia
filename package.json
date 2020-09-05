@@ -10,7 +10,7 @@
         "update": "git push && git push heroku master && heroku logs --tail",
         "git": "git pull && git status && git add . && git status && git commit -m $msg && npm run update"
     },
-    "author": "",
+    "author": "Hector",
     "license": "ISC",
     "engines": {
         "node": "12.14.0"
@@ -29,8 +29,11 @@
         "mongoose": "^5.9.1",
         "mongoose-float": "^1.0.4",
         "mongoose-unique-validator": "^2.0.3",
+        "morgan": "^1.10.0",
         "socket.io": "^2.3.0",
         "uuid": "^7.0.3"
     },
-    "devDependencies": {}
+    "devDependencies": {
+        "nodemon": "^2.0.4"
+    }
 }
